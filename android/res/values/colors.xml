@@ -1,0 +1,112 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+  Modern CRM SaaS Design Tokens for CSP Daily Report.
+  Clean light slate surfaces, white cards, professional blue primary brand,
+  and standardized semantic status colors (Emerald, Crimson, Amber, Azure, Slate).
+-->
+<resources>
+
+    <!-- Brand / Primary SaaS Blue Ramp -->
+    <color name="primary_50">#FFF0F9FF</color>
+    <color name="primary_100">#FFE0F2FE</color>
+    <color name="primary_200">#FFBAE6FD</color>
+    <color name="primary_300">#FF7DD3FC</color>
+    <color name="primary_400">#FF38BDF8</color>
+    <color name="primary_500">#FF0EA5E9</color>
+    <color name="primary_600">#FF0284C7</color>
+    <color name="primary_700">#FF0369A1</color>
+    <color name="primary_800">#FF075985</color>
+    <color name="primary_900">#FF0C4A6E</color>
+    <color name="navy_950">#FF0F172A</color>
+
+    <!-- Hero / CRM Header Gradient Stops -->
+    <color name="hero_start">#FF0F172A</color>
+    <color name="hero_mid">#FF0369A1</color>
+    <color name="hero_end">#FF0284C7</color>
+
+    <!-- Clean SaaS Light Surfaces -->
+    <color name="bg_app">#FFF8FAFC</color>
+    <color name="paper">#FFFFFFFF</color>
+    <color name="paper_2">#FFF1F5F9</color>
+    <color name="fill">#FFF1F5F9</color>
+    <color name="fill_hover">#FFE2E8F0</color>
+
+    <!-- High Contrast SaaS Ink / Typography -->
+    <color name="ink">#FF0F172A</color>
+    <color name="ink_2">#FF1E293B</color>
+    <color name="ink_3">#FF475569</color>
+    <color name="ink_4">#FF94A3B8</color>
+
+    <!-- Clean SaaS Card Borders & Dividers -->
+    <color name="line">#FFE2E8F0</color>
+    <color name="line_2">#FFCBD5E1</color>
+    <color name="line_3">#FF94A3B8</color>
+
+    <!-- Semantic: success / reported (Emerald) -->
+    <color name="ok">#FF059669</color>
+    <color name="ok_bg">#FFECFDF5</color>
+    <color name="ok_border">#FFA7F3D0</color>
+
+    <!-- Semantic: danger / pending-critical (Crimson) -->
+    <color name="danger">#FFDC2626</color>
+    <color name="danger_bg">#FFFEF2F2</color>
+    <color name="danger_border">#FFFECACA</color>
+
+    <!-- Semantic: warning / follow-up due (Amber) -->
+    <color name="warn">#FFD97706</color>
+    <color name="warn_bg">#FFFFFBEB</color>
+    <color name="warn_border">#FFFDE68A</color>
+
+    <!-- Semantic: info / nil-figure (Cyan / Sky) -->
+    <color name="info">#FF0284C7</color>
+    <color name="info_bg">#FFF0F9FF</color>
+    <color name="info_border">#FFBAE6FD</color>
+
+    <!-- WhatsApp Brand Colors -->
+    <color name="whatsapp">#FF16A34A</color>
+    <color name="whatsapp_dark">#FF065F46</color>
+
+    <!-- Scrim / Overlays -->
+    <color name="scrim">#800F172A</color>
+    <color name="ripple_dark">#1A0F172A</color>
+    <color name="ripple_light">#33FFFFFF</color>
+    <color name="transparent">#00000000</color>
+
+    <!-- Header / Hero Elements -->
+    <color name="hero_divider">#33FFFFFF</color>
+    <color name="hero_text_dim">#CCE0F2FE</color>
+    <color name="hero_ok">#FF34D399</color>
+    <color name="hero_pending">#FFFCA5A5</color>
+    <color name="hero_nil">#FF7DD3FC</color>
+
+    <!-- SaaS CRM Card & Navigation Tokens -->
+    <color name="glass_card_bg">#FFFFFFFF</color>
+    <color name="glass_card_surface">#FFF8FAFC</color>
+    <color name="glass_card_highlight">#FFFFFFFF</color>
+    <color name="glass_card_border">#FFE2E8F0</color>
+    <color name="glass_card_border_glow">#FFBAE6FD</color>
+    <color name="glass_dark_bg">#FF0F172A</color>
+    <color name="glass_dark_surface">#FF1E293B</color>
+    <color name="glass_dark_border">#FF334155</color>
+    <color name="glass_nav_bg">#FFFFFFFF</color>
+    <color name="glass_nav_border">#FFE2E8F0</color>
+    <color name="glass_active_pill">#FFF0F9FF</color>
+    <color name="glass_active_pill_border">#FFBAE6FD</color>
+
+    <!-- Ambient Subtle SaaS Accents -->
+    <color name="mesh_bg_1">#FFF8FAFC</color>
+    <color name="mesh_bg_2">#FFF1F5F9</color>
+    <color name="mesh_bg_3">#FFE2E8F0</color>
+    <color name="mesh_node_blue">#FF0284C7</color>
+    <color name="mesh_node_indigo">#FF6366F1</color>
+    <color name="mesh_node_teal">#FF0D9488</color>
+    <color name="mesh_node_purple">#FF9333EA</color>
+    <color name="mesh_line">#1A0284C7</color>
+    <color name="glow_blue">#1A0284C7</color>
+    <color name="glow_cyan">#1A06B6D4</color>
+    <color name="glow_emerald">#1A10B981</color>
+    <color name="glow_amber">#1AF59E0B</color>
+    <color name="glow_rose">#1AF43F5E</color>
+    <color name="glow_purple">#1AA855F7</color>
+
+</resources>

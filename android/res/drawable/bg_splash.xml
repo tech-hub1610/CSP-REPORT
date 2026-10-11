@@ -1,0 +1,17 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+  Full-bleed backdrop for the splash screen. Used as the splash theme's
+  windowBackground so the first frame the system draws is already the brand
+  gradient, rather than a white flash followed by the real thing.
+  android:angle runs anticlockwise from rightward: 135 is top-right to bottom-left.
+-->
+<shape xmlns:android="http://schemas.android.com/apk/res/android"
+    android:shape="rectangle">
+    <gradient
+        android:type="linear"
+        android:angle="135"
+        android:startColor="@color/navy_950"
+        android:centerColor="@color/hero_start"
+        android:endColor="@color/primary_700" />
+</shape>
+

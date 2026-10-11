@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="utf-8"?>
+<vector xmlns:android="http://schemas.android.com/apk/res/android"
+    android:width="24dp"
+    android:height="24dp"
+    android:viewportWidth="24"
+    android:viewportHeight="24">
+    <!-- Modern rounded Analytics & Reports Barchart -->
+    <path
+        android:fillColor="#FF000000"
+        android:pathData="M19,3H5A3,3 0 0,0 2,6v12a3,3 0 0,0 3,3h14a3,3 0 0,0 3,-3V6a3,3 0 0,0 -3,-3zm-11,14a1.2,1.2 0 0,1 -1.2,-1.2v-4.6a1.2,1.2 0 0,1 2.4,0v4.6A1.2,1.2 0 0,1 8,17zm4.5,0a1.2,1.2 0 0,1 -1.2,-1.2V8.2a1.2,1.2 0 0,1 2.4,0v7.6a1.2,1.2 0 0,1 -1.2,1.2zm4.5,0a1.2,1.2 0 0,1 -1.2,-1.2v-3.1a1.2,1.2 0 0,1 2.4,0v3.1A1.2,1.2 0 0,1 17,17z" />
+</vector>

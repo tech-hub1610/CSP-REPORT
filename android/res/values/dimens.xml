@@ -1,0 +1,80 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+  Density scale tuned for 360dp-wide phones. Touch targets are >= 48dp per the plan.
+-->
+<resources>
+
+    <!-- Spacing scale (4dp base) -->
+    <dimen name="sp_1">4dp</dimen>
+    <dimen name="sp_2">8dp</dimen>
+    <dimen name="sp_3">12dp</dimen>
+    <dimen name="sp_4">16dp</dimen>
+    <dimen name="sp_5">20dp</dimen>
+    <dimen name="sp_6">24dp</dimen>
+    <dimen name="sp_8">32dp</dimen>
+
+    <!-- Screen gutter: content never sits flush with the display edge -->
+    <dimen name="screen_gutter">14dp</dimen>
+    <dimen name="card_gap">10dp</dimen>
+
+    <!-- Radii (web radius scale: sm 8, md 12, lg 18, xl 24) -->
+    <dimen name="r_sm">8dp</dimen>
+    <dimen name="r_md">12dp</dimen>
+    <dimen name="r_lg">18dp</dimen>
+    <dimen name="r_xl">24dp</dimen>
+    <dimen name="r_pill">999dp</dimen>
+
+    <!-- Type scale -->
+    <dimen name="t_display">32sp</dimen>
+    <dimen name="t_metric">21sp</dimen>
+    <dimen name="t_metric_sm">17sp</dimen>
+    <dimen name="t_screen_title">19sp</dimen>
+    <dimen name="t_card_title">15sp</dimen>
+    <dimen name="t_body">14sp</dimen>
+    <dimen name="t_label">13sp</dimen>
+    <dimen name="t_meta">12sp</dimen>
+    <dimen name="t_micro">11sp</dimen>
+    <dimen name="t_nano">10sp</dimen>
+
+    <!-- Component heights: every interactive element is comfortably tappable -->
+    <dimen name="h_bottom_nav">62dp</dimen>
+    <dimen name="h_appbar">56dp</dimen>
+    <dimen name="h_button">48dp</dimen>
+    <dimen name="h_button_sm">38dp</dimen>
+    <dimen name="h_input">50dp</dimen>
+    <dimen name="h_chip">32dp</dimen>
+    <dimen name="h_list_row">64dp</dimen>
+    <dimen name="h_fab">56dp</dimen>
+    <dimen name="h_segment">40dp</dimen>
+
+    <!-- Icons are ALWAYS explicitly bounded. The web UI had an unbounded-icon
+         defect that let decorative SVGs fill the viewport; these constants are
+         the only sizes any icon in this app may use. -->
+    <dimen name="ic_nano">14dp</dimen>
+    <dimen name="ic_sm">16dp</dimen>
+    <dimen name="ic_md">20dp</dimen>
+    <dimen name="ic_lg">24dp</dimen>
+    <dimen name="ic_xl">28dp</dimen>
+    <dimen name="ic_tile">36dp</dimen>
+    <dimen name="ic_avatar">40dp</dimen>
+
+    <!-- Progress -->
+    <dimen name="progress_h">10dp</dimen>
+    <dimen name="progress_h_sm">6dp</dimen>
+    <dimen name="ring_size">64dp</dimen>
+    <dimen name="ring_stroke">7dp</dimen>
+
+    <!-- Elevation -->
+    <dimen name="el_1">1dp</dimen>
+    <dimen name="el_2">3dp</dimen>
+    <dimen name="el_3">6dp</dimen>
+    <dimen name="el_4">12dp</dimen>
+
+    <!-- Avatar letter glyph -->
+    <dimen name="avatar_text">15sp</dimen>
+
+    <!-- Sticky action bar clearance so the keyboard never hides Save -->
+    <dimen name="sticky_bar_h">68dp</dimen>
+    <dimen name="fab_margin">16dp</dimen>
+
+</resources>
