@@ -6,6 +6,7 @@ import android.content.Context;
 import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.SharedPreferences;
+import android.hardware.biometrics.BiometricManager;
 import android.hardware.biometrics.BiometricPrompt;
 import android.hardware.fingerprint.FingerprintManager;
 import android.os.Build;
@@ -27,6 +28,17 @@ public final class BiometricHelper {
     }
 
     public static boolean isHardwareDetected(Context context) {
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
+            try {
+                BiometricManager bm = (BiometricManager) context.getSystemService(Context.BIOMETRIC_SERVICE);
+                if (bm != null) {
+                    int res = bm.canAuthenticate();
+                    if (res != BiometricManager.BIOMETRIC_ERROR_NO_HARDWARE) {
+                        return true;
+                    }
+                }
+            } catch (Throwable ignored) {}
+        }
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
             try {
                 FingerprintManager fm = (FingerprintManager) context.getSystemService(Context.FINGERPRINT_SERVICE);
@@ -39,6 +51,19 @@ public final class BiometricHelper {
     }
 
     public static boolean hasEnrolledFingerprints(Context context) {
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
+            try {
+                BiometricManager bm = (BiometricManager) context.getSystemService(Context.BIOMETRIC_SERVICE);
+                if (bm != null) {
+                    int res = bm.canAuthenticate();
+                    if (res == BiometricManager.BIOMETRIC_SUCCESS) {
+                        return true;
+                    } else if (res == BiometricManager.BIOMETRIC_ERROR_NONE_ENROLLED) {
+                        return false;
+                    }
+                }
+            } catch (Throwable ignored) {}
+        }
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
             try {
                 FingerprintManager fm = (FingerprintManager) context.getSystemService(Context.FINGERPRINT_SERVICE);
@@ -133,7 +158,7 @@ public final class BiometricHelper {
 
                 String sub = promptSubtitle != null && !promptSubtitle.isEmpty() ? promptSubtitle : "Touch sensor to verify session";
 
-                BiometricPrompt prompt = new BiometricPrompt.Builder(activity)
+                BiometricPrompt.Builder builder = new BiometricPrompt.Builder(activity)
                         .setTitle("CSP Daily Report")
                         .setSubtitle(sub)
                         .setDescription("Touch your device fingerprint sensor to verify identity")
@@ -144,17 +169,29 @@ public final class BiometricHelper {
                                     callback.onError("Switched to password entry");
                                 }
                             }
-                        })
-                        .build();
+                        });
+
+                if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
+                    try {
+                        builder.setConfirmationRequired(false);
+                    } catch (Throwable ignored) {}
+                }
+
+                BiometricPrompt prompt = builder.build();
 
                 prompt.authenticate(cancellationSignal, executor, new BiometricPrompt.AuthenticationCallback() {
                     @Override
                     public void onAuthenticationError(int errorCode, CharSequence errString) {
                         super.onAuthenticationError(errorCode, errString);
-                        if (errorCode != BiometricPrompt.BIOMETRIC_ERROR_CANCELED &&
-                            errorCode != BiometricPrompt.BIOMETRIC_ERROR_USER_CANCELED) {
+                        String msg = errString != null ? errString.toString() : ("Biometric error (" + errorCode + ")");
+                        if (errorCode == BiometricPrompt.BIOMETRIC_ERROR_CANCELED ||
+                            errorCode == BiometricPrompt.BIOMETRIC_ERROR_USER_CANCELED) {
                             if (callback != null) {
-                                callback.onError(errString != null ? errString.toString() : "Biometric error (Code " + errorCode + ")");
+                                callback.onError("Scan canceled. Tap to scan again.");
+                            }
+                        } else {
+                            if (callback != null) {
+                                callback.onError(msg);
                             }
                         }
                     }
@@ -197,10 +234,15 @@ public final class BiometricHelper {
                         @Override
                         public void onAuthenticationError(int errorCode, CharSequence errString) {
                             super.onAuthenticationError(errorCode, errString);
-                            if (errorCode != FingerprintManager.FINGERPRINT_ERROR_CANCELED &&
-                                errorCode != FingerprintManager.FINGERPRINT_ERROR_USER_CANCELED) {
+                            String msg = errString != null ? errString.toString() : ("Fingerprint error (" + errorCode + ")");
+                            if (errorCode == FingerprintManager.FINGERPRINT_ERROR_CANCELED ||
+                                errorCode == FingerprintManager.FINGERPRINT_ERROR_USER_CANCELED) {
                                 if (callback != null) {
-                                    callback.onError(errString != null ? errString.toString() : "Fingerprint error (Code " + errorCode + ")");
+                                    callback.onError("Scan canceled. Tap to scan again.");
+                                }
+                            } else {
+                                if (callback != null) {
+                                    callback.onError(msg);
                                 }
                             }
                         }

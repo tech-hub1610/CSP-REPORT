@@ -318,7 +318,37 @@ public class HomeScreen extends Screen {
         LinearLayout.LayoutParams statusLp = wrap();
         statusLp.topMargin = Ui.dp(context, 10.0f);
         statusRow.setLayoutParams(statusLp);
-        statusRow.addView(dayPill(context, daySummary));
+
+        Badge dPill = dayPill(context, daySummary);
+        dPill.setBackground(Ui.pressable(context, 0x22FFFFFF, 12.0f, true));
+        dPill.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                HomeScreen.this.host.push(new BusinessDayScreen(HomeScreen.this.getContext(), HomeScreen.this.host, HomeScreen.this.date));
+            }
+        });
+        statusRow.addView(dPill);
+
+        if (!Biz.isToday(this.date)) {
+            TextView todayBadge = new TextView(context);
+            todayBadge.setText("Today ↺");
+            Ui.size(todayBadge, 11.0f);
+            todayBadge.setTypeface(Typeface.DEFAULT_BOLD);
+            todayBadge.setTextColor(0xFF0F172A);
+            todayBadge.setBackground(Ui.round(context, 0xFFFCD34D, 11.0f, 0xFFFFFFFF, 1.0f));
+            Ui.pad(todayBadge, 8, 3, 8, 3);
+            Anim3D.attachTactilePress(todayBadge);
+            todayBadge.setOnClickListener(new View.OnClickListener() {
+                @Override
+                public void onClick(View v) {
+                    UiState.setDate(HomeScreen.this.getContext(), Biz.today());
+                    HomeScreen.this.refreshContent();
+                }
+            });
+            LinearLayout.LayoutParams tLp = wrap();
+            tLp.leftMargin = Ui.dp(context, 6.0f);
+            statusRow.addView(todayBadge, tLp);
+        }
 
         if (daySummary.isWorkingDay() && UiState.isViewingToday(context) && daySummary.total > 0 && !daySummary.isComplete()) {
             Badge badge = new Badge(context);
@@ -650,27 +680,15 @@ public class HomeScreen extends Screen {
             }
         }
 
-        // 1. Prominent FILE REPORTS Card
-        String reportSub = daySummary.pending == 0 ? ("All " + daySummary.total + " filed") : (daySummary.pending + " pending");
-        View fileReportsCard = tile(context, R.drawable.ic_reports, R.color.primary_600, "FILE REPORTS", reportSub, new View.OnClickListener() {
+        // Consolidated premier CSPs Directory Card
+        String sub = daySummary.total + " Total CSPs · " + daySummary.reported + " Reported · " + daySummary.pending + " Pending" + (notContacted > 0 ? " (" + notContacted + " follow-up due)" : "");
+        View directoryCard = directoryTile(context, "CSPs DIRECTORY", sub, daySummary.pending, new View.OnClickListener() {
             @Override
             public void onClick(View view) {
-                HomeScreen.this.host.push(new CspListScreen(HomeScreen.this.getContext(), HomeScreen.this.host, 1));
+                HomeScreen.this.host.push(new CspListScreen(HomeScreen.this.getContext(), HomeScreen.this.host, 0));
             }
         });
-        this.tilesRow.addView(fileReportsCard, weight1());
-
-        // 2. Prominent CSP & FOLLOW-UP Card
-        String followupSub = daySummary.total + " CSPs · " + (notContacted == 0 ? "Up to date" : notContacted + " due");
-        View followupCard = tile(context, R.drawable.ic_csp, R.color.warn, "CSP & FOLLOW-UP", followupSub, new View.OnClickListener() {
-            @Override
-            public void onClick(View view) {
-                HomeScreen.this.host.push(new FollowupScreen(HomeScreen.this.getContext(), HomeScreen.this.host, HomeScreen.this.date));
-            }
-        });
-        LinearLayout.LayoutParams dirLp = weight1();
-        dirLp.leftMargin = Ui.dp(context, 8.0f);
-        this.tilesRow.addView(followupCard, dirLp);
+        this.tilesRow.addView(directoryCard, mw());
     }
 
     private LinearLayout.LayoutParams tileGap(Context context) {
@@ -739,12 +757,86 @@ public class HomeScreen extends Screen {
         return linearLayout;
     }
 
+    private LinearLayout directoryTile(Context context, String title, String subtitle, int pendingCount, View.OnClickListener onClickListener) {
+        LinearLayout card = new LinearLayout(context);
+        card.setOrientation(0);
+        card.setGravity(16);
+        card.setBackground(Ui.round(context, Ui.color(context, R.color.paper), 16.0f, Ui.color(context, R.color.line), 1.0f));
+        if (Build.VERSION.SDK_INT >= 21) {
+            card.setElevation(Ui.dp(context, 2.0f));
+        }
+        Ui.pad(card, 16, 14, 16, 14);
+        card.setClickable(true);
+        Anim3D.attachTactilePress(card);
+        card.setOnClickListener(onClickListener);
+
+        FrameLayout iconFrame = new FrameLayout(context);
+        iconFrame.setBackground(Ui.round(context, Ui.color(context, R.color.primary_50), 14.0f, Ui.color(context, R.color.primary_200), 1.0f));
+        int dp = Ui.dp(context, 44.0f);
+        LinearLayout.LayoutParams iconLp = new LinearLayout.LayoutParams(dp, dp);
+        iconLp.rightMargin = Ui.dp(context, 14.0f);
+        iconFrame.setLayoutParams(iconLp);
+
+        ImageView icon = new ImageView(context);
+        int dpIcon = Ui.dp(context, 24.0f);
+        FrameLayout.LayoutParams iconInnerLp = new FrameLayout.LayoutParams(dpIcon, dpIcon);
+        iconInnerLp.gravity = 17;
+        icon.setLayoutParams(iconInnerLp);
+        icon.setImageResource(R.drawable.ic_csp);
+        icon.setColorFilter(Ui.color(context, R.color.primary_600));
+        iconFrame.addView(icon);
+        card.addView(iconFrame);
+
+        LinearLayout textCol = new LinearLayout(context);
+        textCol.setOrientation(1);
+        LinearLayout.LayoutParams colLp = weight1();
+        textCol.setLayoutParams(colLp);
+
+        TextView titleView = new TextView(context);
+        titleView.setText(title);
+        Ui.size(titleView, 15.5f);
+        titleView.setTypeface(Typeface.DEFAULT_BOLD);
+        titleView.setTextColor(Ui.color(context, R.color.ink));
+        textCol.addView(titleView, mw());
+
+        TextView subView = new TextView(context);
+        subView.setText(subtitle);
+        subView.setTextAppearance(context, R.style.Text_Meta);
+        subView.setTextColor(Ui.color(context, R.color.ink_3));
+        Ui.pad(subView, 0, 2, 0, 0);
+        textCol.addView(subView, mw());
+        card.addView(textCol);
+
+        if (pendingCount > 0) {
+            Badge badge = new Badge(context);
+            badge.setKind(Badge.WARN);
+            badge.setText(pendingCount + " Pending");
+            card.addView(badge, wrap());
+        } else {
+            Badge badge = new Badge(context);
+            badge.setKind(Badge.OK);
+            badge.setText("100% Done");
+            card.addView(badge, wrap());
+        }
+
+        ImageView chevron = new ImageView(context);
+        int chSize = Ui.dp(context, 18.0f);
+        LinearLayout.LayoutParams chLp = new LinearLayout.LayoutParams(chSize, chSize);
+        chLp.leftMargin = Ui.dp(context, 8.0f);
+        chevron.setLayoutParams(chLp);
+        chevron.setImageResource(R.drawable.ic_chevron_right);
+        chevron.setColorFilter(Ui.color(context, R.color.ink_4));
+        card.addView(chevron);
+
+        return card;
+    }
+
     private void paintAttention(SQLiteDatabase sQLiteDatabase, DaySummary daySummary, List<CspDay> list) {
         Context context = getContext();
         this.attnSection.set("Attention Required", daySummary.pending > 0 ? "View all" : null, new Runnable() {
             @Override
             public void run() {
-                HomeScreen.this.host.push(new FollowupScreen(HomeScreen.this.getContext(), HomeScreen.this.host, HomeScreen.this.date));
+                HomeScreen.this.host.push(new CspListScreen(HomeScreen.this.getContext(), HomeScreen.this.host, 0, "Attention Required"));
             }
         });
         this.attention.removeAllViews();
@@ -900,23 +992,23 @@ public class HomeScreen extends Screen {
 
     private void paintActivity(SQLiteDatabase sQLiteDatabase) {
         Context context = getContext();
-        this.actSection.set("Recent activity", "View all", new Runnable() { // from class: org.cspdaily.report.ui.screen.HomeScreen.16
-            @Override // java.lang.Runnable
+        this.actSection.set("Today's activity", "View all", new Runnable() {
+            @Override
             public void run() {
-                HomeScreen.this.host.push(new ActivityScreen(HomeScreen.this.getContext(), HomeScreen.this.host));
+                HomeScreen.this.host.push(new ActivityScreen(HomeScreen.this.getContext(), HomeScreen.this.host, HomeScreen.this.date));
             }
         });
         this.activity.removeAllViews();
-        List<Journal.Entry> recent = Journal.recent(sQLiteDatabase, 5, null);
+        List<Journal.Entry> recent = Journal.recentForDate(sQLiteDatabase, 6, this.date);
         if (recent.isEmpty()) {
             Empty empty = new Empty(context);
-            empty.show(R.drawable.ic_history, R.color.line_2, "No activity yet", "Reports filed and follow-ups logged appear here.");
+            empty.show(R.drawable.ic_history, R.color.line_2, "No activity today", "Reports filed and follow-ups logged for " + headlineDate().toLowerCase() + " will appear here.");
             this.activity.addView(empty, mw());
         } else {
             LinearLayout cardFlat = Cards.cardFlat(context);
             int i = 0;
             while (i < recent.size()) {
-                cardFlat.addView(Timeline.row(context, recent.get(i), i == recent.size() + (-1)), mw());
+                cardFlat.addView(Timeline.row(context, recent.get(i), i == recent.size() - 1), mw());
                 i++;
             }
             this.activity.addView(cardFlat, mw());

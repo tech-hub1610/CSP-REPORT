@@ -3,6 +3,7 @@ package org.cspdaily.report.ui.screen;
 import android.app.Activity;
 import android.content.Context;
 import android.graphics.Typeface;
+import android.os.CancellationSignal;
 import android.text.InputType;
 import android.view.View;
 import android.widget.EditText;
@@ -28,6 +29,8 @@ public class LoginScreen extends Screen {
     private TextView errorText;
     private ProgressBar progressBar;
     private View loginBtn;
+    private CancellationSignal biometricSignal;
+    private int biometricSessionId = 0;
     private boolean isBiometricActive = false;
 
     public LoginScreen(final Context context, final Screen.Host host) {
@@ -293,38 +296,70 @@ public class LoginScreen extends Screen {
         Ui.pad(editText, 4, 10, 4, 10);
     }
 
-    private void promptFingerprintSignIn(final User lastUser) {
+    @Override
+    public void onHideScreen() {
+        super.onHideScreen();
+        cancelBiometric();
+    }
+
+    private synchronized void cancelBiometric() {
+        biometricSessionId++;
+        if (biometricSignal != null && !biometricSignal.isCanceled()) {
+            try {
+                biometricSignal.cancel();
+            } catch (Throwable ignored) {}
+            biometricSignal = null;
+        }
+        isBiometricActive = false;
+    }
+
+    private synchronized void promptFingerprintSignIn(final User lastUser) {
         final Context context = getContext();
-        if (!(context instanceof Activity) || lastUser == null || isBiometricActive) return;
+        if (!(context instanceof Activity) || ((Activity) context).isFinishing() || lastUser == null) return;
 
+        cancelBiometric();
+        final int thisSession = ++biometricSessionId;
         isBiometricActive = true;
-        BiometricHelper.authenticate((Activity) context, "Quick Sign In as " + lastUser.name, new BiometricHelper.Callback() {
-            @Override
-            public void onSuccess() {
-                isBiometricActive = false;
-                Auth.setCurrentUser(context, lastUser);
-                host.toast("Fingerprint verified: Welcome, " + lastUser.name);
-                if (context instanceof MainActivity) {
-                    ((MainActivity) context).onUserLoggedIn();
-                }
-            }
 
-            @Override
-            public void onError(String message) {
-                isBiometricActive = false;
-                if (message != null && !message.contains("canceled") && !message.contains("Switched")) {
-                    errorText.setText(message);
+        try {
+            this.biometricSignal = BiometricHelper.authenticate((Activity) context, "Quick Sign In as " + lastUser.name, new BiometricHelper.Callback() {
+                @Override
+                public void onSuccess() {
+                    if (thisSession != biometricSessionId) return;
+                    isBiometricActive = false;
+                    biometricSignal = null;
+                    Auth.setCurrentUser(context, lastUser);
+                    host.toast("Fingerprint verified: Welcome, " + lastUser.name);
+                    if (context instanceof MainActivity) {
+                        ((MainActivity) context).onUserLoggedIn();
+                    }
+                }
+
+                @Override
+                public void onError(String message) {
+                    if (thisSession != biometricSessionId) return;
+                    isBiometricActive = false;
+                    biometricSignal = null;
+                    if (message != null && !message.contains("canceled") && !message.contains("Switched")) {
+                        errorText.setText(message);
+                        errorText.setVisibility(View.VISIBLE);
+                    }
+                }
+
+                @Override
+                public void onFailed() {
+                    if (thisSession != biometricSessionId) return;
+                    isBiometricActive = false;
+                    errorText.setText("Fingerprint not recognized. Tap button to retry or use password.");
                     errorText.setVisibility(View.VISIBLE);
                 }
-            }
-
-            @Override
-            public void onFailed() {
-                isBiometricActive = false;
-                errorText.setText("Fingerprint not recognized. Please try again or use password.");
-                errorText.setVisibility(View.VISIBLE);
-            }
-        });
+            });
+        } catch (Throwable th) {
+            isBiometricActive = false;
+            biometricSignal = null;
+            errorText.setText("Fingerprint sensor error: " + th.getMessage());
+            errorText.setVisibility(View.VISIBLE);
+        }
     }
 
     private void doLogin() {

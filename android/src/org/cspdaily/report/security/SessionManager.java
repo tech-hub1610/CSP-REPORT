@@ -50,8 +50,10 @@ public final class SessionManager {
 
         SQLiteDatabase db = Core.get(activity).dbRead();
         boolean lockEnabled = Settings.flag(db, Settings.SECURITY_LOCK_ENABLED, true);
+        boolean biometricEnabled = Settings.flag(db, Settings.SECURITY_BIOMETRIC_ENABLED, true);
+        boolean isProtected = lockEnabled || biometricEnabled;
 
-        if (lockEnabled) {
+        if (isProtected) {
             int lockTimeoutSec = getLockTimeoutSec(db);
             if (lastBackgroundTimestamp > 0) {
                 long elapsedSec = (System.currentTimeMillis() - lastBackgroundTimestamp) / 1000L;
@@ -65,7 +67,7 @@ public final class SessionManager {
             activity.showLockScreen();
         } else {
             lastActiveTimestamp = System.currentTimeMillis();
-            if (lockEnabled) {
+            if (isProtected) {
                 startInactivityWatchdog(activity);
             }
         }
@@ -76,7 +78,9 @@ public final class SessionManager {
         if (isLocked || !Auth.isLoggedIn(activity)) return;
 
         SQLiteDatabase db = Core.get(activity).dbRead();
-        if (!Settings.flag(db, Settings.SECURITY_LOCK_ENABLED, true)) return;
+        boolean lockEnabled = Settings.flag(db, Settings.SECURITY_LOCK_ENABLED, true);
+        boolean biometricEnabled = Settings.flag(db, Settings.SECURITY_BIOMETRIC_ENABLED, true);
+        if (!lockEnabled && !biometricEnabled) return;
 
         final int inactivityTimeoutSec = getInactivityTimeoutSec(db);
         if (inactivityTimeoutSec <= 0) return;
@@ -118,10 +122,11 @@ public final class SessionManager {
 
     public static int getLockTimeoutSec(SQLiteDatabase db) {
         try {
-            String val = Settings.get(db, Settings.SECURITY_LOCK_TIMEOUT, "600");
-            return Integer.parseInt(val.trim());
+            String val = Settings.get(db, Settings.SECURITY_LOCK_TIMEOUT, "0");
+            int sec = Integer.parseInt(val.trim());
+            return Math.max(0, sec);
         } catch (Throwable ignored) {
-            return 600; // Default: 10 minutes when minimized / background
+            return 0; // Default: Immediately when minimized / background
         }
     }
 

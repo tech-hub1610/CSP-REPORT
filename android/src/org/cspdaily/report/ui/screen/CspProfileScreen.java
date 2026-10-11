@@ -38,11 +38,13 @@ public class CspProfileScreen extends Screen {
     private final String date;
     private final LinearLayout details;
     private final LinearLayout identity;
+    private final LinearLayout tabContainer;
     private final LinearLayout metrics;
     private final Empty missing;
     private final Section secActivity;
     private final Section secDetails;
     private final Section secReport;
+    private int activeTab = 0; // 0: Today's Report, 1: Profile Details, 2: Activity
 
     public CspProfileScreen(Context context, Screen.Host host, long j, String str) {
         super(context, host);
@@ -55,21 +57,84 @@ public class CspProfileScreen extends Screen {
         this.identity = new LinearLayout(context);
         this.identity.setOrientation(1);
         add(this.identity, 0);
+
+        this.tabContainer = new LinearLayout(context);
+        this.tabContainer.setOrientation(1);
+        add(this.tabContainer, 10);
+
         this.secReport = new Section(context);
-        add(this.secReport, 2);
+        add(this.secReport, 4);
         this.metrics = new LinearLayout(context);
         this.metrics.setOrientation(1);
         add(this.metrics, 0);
+
         this.secDetails = new Section(context);
-        add(this.secDetails, 6);
+        add(this.secDetails, 4);
         this.details = new LinearLayout(context);
         this.details.setOrientation(1);
         add(this.details, 0);
+
         this.secActivity = new Section(context);
-        add(this.secActivity, 6);
+        add(this.secActivity, 4);
         this.activity = new LinearLayout(context);
         this.activity.setOrientation(1);
         add(this.activity, 0);
+    }
+
+    private void renderTabs(final Context context) {
+        this.tabContainer.removeAllViews();
+        LinearLayout row = new LinearLayout(context);
+        row.setOrientation(0);
+        row.setGravity(16);
+
+        final String[] tabLabels = new String[]{"📊 Today's Report", "👤 Profile Details", "⏱️ Activity"};
+        for (int i = 0; i < tabLabels.length; i++) {
+            final int index = i;
+            TextView tabBtn = new TextView(context);
+            tabBtn.setText(tabLabels[i]);
+            tabBtn.setGravity(17);
+            Ui.size(tabBtn, 12.0f);
+            tabBtn.setTypeface(Typeface.DEFAULT_BOLD);
+            boolean isSelected = (this.activeTab == index);
+            if (isSelected) {
+                tabBtn.setTextColor(Ui.color(context, R.color.paper));
+                tabBtn.setBackground(Ui.round(context, Ui.color(context, R.color.primary_800), 12.0f, Ui.color(context, R.color.primary_800), 1.0f));
+            } else {
+                tabBtn.setTextColor(Ui.color(context, R.color.ink_3));
+                tabBtn.setBackground(Ui.round(context, Ui.color(context, R.color.paper), 12.0f, Ui.color(context, R.color.line), 1.0f));
+            }
+            Ui.pad(tabBtn, 6, 8, 6, 8);
+            tabBtn.setClickable(true);
+            tabBtn.setOnClickListener(new View.OnClickListener() {
+                @Override
+                public void onClick(View v) {
+                    CspProfileScreen.this.activeTab = index;
+                    CspProfileScreen.this.renderTabs(context);
+                    CspProfileScreen.this.applyTabVisibility();
+                }
+            });
+            LinearLayout.LayoutParams lp = new LinearLayout.LayoutParams(0, -2, 1.0f);
+            if (i > 0) {
+                lp.leftMargin = Ui.dp(context, 6.0f);
+            }
+            row.addView(tabBtn, lp);
+        }
+        this.tabContainer.addView(row, mw());
+    }
+
+    private void applyTabVisibility() {
+        boolean showReport = (this.activeTab == 0);
+        boolean showDetails = (this.activeTab == 1);
+        boolean showActivity = (this.activeTab == 2);
+
+        this.secReport.setVisibility(showReport ? 0 : 8);
+        this.metrics.setVisibility(showReport ? 0 : 8);
+
+        this.secDetails.setVisibility(showDetails ? 0 : 8);
+        this.details.setVisibility(showDetails ? 0 : 8);
+
+        this.secActivity.setVisibility(showActivity ? 0 : 8);
+        this.activity.setVisibility(showActivity ? 0 : 8);
     }
 
     @Override // org.cspdaily.report.ui.Screen
@@ -98,6 +163,7 @@ public class CspProfileScreen extends Screen {
         if (cspDay == null) {
             this.missing.show(R.drawable.ic_alert, R.color.danger, "CSP not found", "It may have been deleted from the register.");
             this.identity.setVisibility(8);
+            this.tabContainer.setVisibility(8);
             this.secReport.setVisibility(8);
             this.metrics.setVisibility(8);
             this.secDetails.setVisibility(8);
@@ -108,12 +174,9 @@ public class CspProfileScreen extends Screen {
         }
         this.missing.hide();
         this.identity.setVisibility(0);
-        this.secReport.setVisibility(0);
-        this.metrics.setVisibility(0);
-        this.secDetails.setVisibility(0);
-        this.details.setVisibility(0);
-        this.secActivity.setVisibility(0);
-        this.activity.setVisibility(0);
+        this.tabContainer.setVisibility(0);
+        renderTabs(context);
+        applyTabVisibility();
         title(cspDay.name);
         subtitle("#" + cspDay.suffix() + " · " + Biz.friendlyDate(this.date));
         this.identity.removeAllViews();

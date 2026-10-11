@@ -53,6 +53,16 @@ public final class FollowupSheet {
         LinearLayout root = new LinearLayout(activity);
         root.setOrientation(1);
 
+        // Material Design Drag Handle
+        LinearLayout dragHandleBar = new LinearLayout(activity);
+        dragHandleBar.setOrientation(0);
+        dragHandleBar.setGravity(17);
+        Ui.pad(dragHandleBar, 0, 10, 0, 8);
+        View dragPill = new View(activity);
+        dragPill.setBackground(Ui.pill(activity, Ui.color(activity, R.color.line_2)));
+        dragHandleBar.addView(dragPill, new LinearLayout.LayoutParams(Ui.dp(activity, 38.0f), Ui.dp(activity, 4.5f)));
+        root.addView(dragHandleBar, mw());
+
         // 1. Hero Header
         LinearLayout header = new LinearLayout(activity);
         header.setOrientation(1);
@@ -74,6 +84,23 @@ public final class FollowupSheet {
         datePill.setBackground(Ui.pill(activity, 0x33FFFFFF));
         Ui.pad(datePill, 8, 3, 8, 3);
         titleRow.addView(datePill, wrap());
+
+        ImageView closeBtn = new ImageView(activity);
+        int cbSize = Ui.dp(activity, 20.0f);
+        LinearLayout.LayoutParams cbLp = new LinearLayout.LayoutParams(cbSize, cbSize);
+        cbLp.leftMargin = Ui.dp(activity, 10.0f);
+        closeBtn.setLayoutParams(cbLp);
+        closeBtn.setImageResource(R.drawable.ic_close);
+        closeBtn.setColorFilter(0xCCFFFFFF);
+        closeBtn.setClickable(true);
+        closeBtn.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                dialog.dismiss();
+            }
+        });
+        titleRow.addView(closeBtn);
+
         header.addView(titleRow, mw());
 
         TextView nameView = Cards.bold(activity, cspDay.name, 17.0f, R.color.paper);

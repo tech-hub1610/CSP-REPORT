@@ -65,7 +65,9 @@ for t in aapt javac java zipalign apksigner; do
   command -v "$t" >/dev/null 2>&1 || die "'$t' not found in PATH (apt install aapt zipalign apksigner)"
 done
 [ -f "$LIB/android.jar" ] || die "lib/android.jar missing (API-34 platform stubs)"
-[ -x "$DX" ] || die "dexer missing: apt install dalvik-exchange"
+if [ ! -f "$LIB/r8.jar" ] && [ ! -x "$DX" ]; then
+  die "dexer missing: install lib/r8.jar or apt install dalvik-exchange"
+fi
 
 # ----------------------------- 1. aapt: resources + R.java -------------------
 rm -rf "$BUILD/gen" "$BUILD/classes" "$BUILD/dex"
@@ -82,7 +84,12 @@ javac --release 8 -encoding UTF-8 -nowarn \
 echo "==> [2/6] javac: $(grep -c . "$BUILD/sources.txt") source files"
 
 # ----------------------------- 3. dex ----------------------------------------
-"$DX" --dex --min-sdk-version=24 --output "$BUILD/dex/classes.dex" "$BUILD/classes"
+if [ -f "$LIB/r8.jar" ]; then
+  find "$BUILD/classes" -name '*.class' > "$BUILD/classes.txt"
+  java -cp "$LIB/r8.jar" com.android.tools.r8.D8 --min-api 24 --lib "$LIB/android.jar" --output "$BUILD/dex" @"$BUILD/classes.txt"
+else
+  "$DX" --dex --min-sdk-version=24 --output "$BUILD/dex/classes.dex" "$BUILD/classes"
+fi
 echo "==> [3/6] dx: classes.dex ($(stat -c%s "$BUILD/dex/classes.dex") bytes)"
 
 # ----------------------------- 4. package ------------------------------------

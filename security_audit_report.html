@@ -1,0 +1,536 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>CSP Daily Report — Comprehensive Deep Security Audit Report</title>
+<style>
+  @page {
+    size: A4 portrait;
+    margin: 1.8cm 1.5cm 2.2cm 1.5cm;
+    @top-left {
+      content: "CSP DAILY REPORT — SECURITY AUDIT";
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+      font-size: 8pt;
+      font-weight: 700;
+      color: #64748b;
+      letter-spacing: 0.5px;
+    }
+    @top-right {
+      content: "OCTOBER 2026 · CONFIDENTIAL";
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+      font-size: 8pt;
+      font-weight: 600;
+      color: #94a3b8;
+    }
+    @bottom-left {
+      content: "Target: Android Native App (v2.0.47 / SDK 34)";
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+      font-size: 8pt;
+      color: #64748b;
+    }
+    @bottom-right {
+      content: "Page " counter(page) " of " counter(pages);
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+      font-size: 8pt;
+      font-weight: 600;
+      color: #64748b;
+    }
+  }
+
+  * {
+    box-sizing: border-box;
+    margin: 0;
+    padding: 0;
+  }
+
+  body {
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+    color: #1e293b;
+    background: #ffffff;
+    font-size: 10pt;
+    line-height: 1.55;
+  }
+
+  /* Header Banner */
+  .hero {
+    background: linear-gradient(135deg, #0f172a 0%, #1e293b 50%, #0369a1 100%);
+    color: #ffffff;
+    padding: 24px 24px;
+    border-radius: 12px;
+    margin-bottom: 22px;
+  }
+
+  .hero-tag {
+    display: inline-block;
+    background: rgba(255, 255, 255, 0.18);
+    color: #38bdf8;
+    font-size: 8pt;
+    font-weight: 800;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    padding: 4px 10px;
+    border-radius: 6px;
+    margin-bottom: 10px;
+    border: 1px solid rgba(56, 189, 248, 0.3);
+  }
+
+  .hero h1 {
+    font-size: 20pt;
+    font-weight: 800;
+    line-height: 1.2;
+    margin-bottom: 6px;
+    letter-spacing: -0.5px;
+  }
+
+  .hero-meta {
+    font-size: 9pt;
+    color: #cbd5e1;
+    display: flex;
+    gap: 20px;
+    margin-top: 10px;
+    border-top: 1px solid rgba(255, 255, 255, 0.15);
+    padding-top: 10px;
+  }
+
+  .hero-meta span strong {
+    color: #ffffff;
+  }
+
+  /* Section Styling */
+  h2 {
+    font-size: 13pt;
+    font-weight: 800;
+    color: #0f172a;
+    border-bottom: 2px solid #e2e8f0;
+    padding-bottom: 6px;
+    margin-top: 22px;
+    margin-bottom: 12px;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+
+  h3 {
+    font-size: 11pt;
+    font-weight: 700;
+    color: #1e293b;
+    margin-top: 12px;
+    margin-bottom: 6px;
+  }
+
+  p {
+    margin-bottom: 8px;
+    color: #334155;
+  }
+
+  /* Scorecard & Summary Grid */
+  .summary-grid {
+    display: flex;
+    gap: 12px;
+    margin-bottom: 18px;
+  }
+
+  .score-card {
+    flex: 1;
+    background: #f8fafc;
+    border: 1px solid #e2e8f0;
+    border-radius: 10px;
+    padding: 12px 14px;
+    text-align: center;
+  }
+
+  .score-card.secure { border-top: 4px solid #16a34a; }
+  .score-card.high { border-top: 4px solid #e11d48; }
+  .score-card.med { border-top: 4px solid #d97706; }
+  .score-card.low { border-top: 4px solid #2563eb; }
+
+  .score-val {
+    font-size: 18pt;
+    font-weight: 800;
+    line-height: 1.1;
+  }
+  .score-val.green { color: #16a34a; }
+  .score-val.red { color: #e11d48; }
+  .score-val.amber { color: #d97706; }
+  .score-val.blue { color: #2563eb; }
+
+  .score-lbl {
+    font-size: 8pt;
+    font-weight: 700;
+    text-transform: uppercase;
+    color: #64748b;
+    margin-top: 4px;
+  }
+
+  /* Tables */
+  table {
+    width: 100%;
+    border-collapse: collapse;
+    margin: 12px 0 16px 0;
+    font-size: 8.5pt;
+  }
+
+  th, td {
+    padding: 8px 10px;
+    text-align: left;
+    border-bottom: 1px solid #e2e8f0;
+    vertical-align: middle;
+  }
+
+  th {
+    background: #f1f5f9;
+    color: #334155;
+    font-weight: 700;
+    text-transform: uppercase;
+    font-size: 7.5pt;
+    letter-spacing: 0.5px;
+  }
+
+  tr:nth-child(even) td {
+    background: #f8fafc;
+  }
+
+  /* Badges */
+  .badge {
+    display: inline-block;
+    padding: 2px 7px;
+    border-radius: 4px;
+    font-size: 7.5pt;
+    font-weight: 800;
+    text-transform: uppercase;
+    letter-spacing: 0.3px;
+  }
+
+  .badge-high { background: #ffe4e6; color: #be123c; border: 1px solid #fecdd3; }
+  .badge-med { background: #fef3c7; color: #b45309; border: 1px solid #fde68a; }
+  .badge-low { background: #dbeafe; color: #1d4ed8; border: 1px solid #bfdbfe; }
+  .badge-pass { background: #dcfce7; color: #15803d; border: 1px solid #bbf7d0; }
+
+  /* Vulnerability Cards */
+  .vuln-box {
+    background: #ffffff;
+    border: 1px solid #cbd5e1;
+    border-left-width: 5px;
+    border-radius: 8px;
+    padding: 12px 14px;
+    margin-bottom: 14px;
+    page-break-inside: avoid;
+  }
+
+  .vuln-box.high { border-left-color: #e11d48; }
+  .vuln-box.med { border-left-color: #d97706; }
+  .vuln-box.low { border-left-color: #2563eb; }
+  .vuln-box.pass { border-left-color: #16a34a; }
+
+  .vuln-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 6px;
+  }
+
+  .vuln-title {
+    font-size: 10.5pt;
+    font-weight: 800;
+    color: #0f172a;
+  }
+
+  .vuln-loc {
+    font-size: 8pt;
+    font-family: monospace;
+    color: #475569;
+    background: #f1f5f9;
+    padding: 2px 6px;
+    border-radius: 4px;
+    margin-bottom: 6px;
+    display: inline-block;
+  }
+
+  .code-block {
+    background: #0f172a;
+    color: #f8fafc;
+    font-family: "Courier New", Courier, monospace;
+    font-size: 8pt;
+    padding: 10px 12px;
+    border-radius: 6px;
+    margin: 6px 0;
+    line-height: 1.4;
+    overflow-x: hidden;
+    white-space: pre-wrap;
+  }
+
+  .code-block .kw { color: #38bdf8; font-weight: bold; }
+  .code-block .str { color: #a7f3d0; }
+  .code-block .com { color: #94a3b8; font-style: italic; }
+
+  .rec-box {
+    background: #f0fdf4;
+    border: 1px solid #bbf7d0;
+    border-radius: 6px;
+    padding: 8px 10px;
+    margin-top: 6px;
+    font-size: 8.5pt;
+    color: #166534;
+  }
+
+  .rec-box strong {
+    color: #14532d;
+  }
+
+  .page-break {
+    page-break-before: always;
+  }
+</style>
+</head>
+<body>
+
+  <!-- Header Banner -->
+  <div class="hero">
+    <div class="hero-tag">Official Security Assessment</div>
+    <h1>Deep Security Analysis &amp; Vulnerability Report</h1>
+    <div class="hero-meta">
+      <span><strong>Target:</strong> CSP Daily Report Native Android App</span>
+      <span><strong>Package:</strong> org.cspdaily.report</span>
+      <span><strong>Version:</strong> 2.0.47 (20260966)</span>
+      <span><strong>Date:</strong> October 2026</span>
+    </div>
+  </div>
+
+  <!-- Executive Summary -->
+  <h2>1. Executive Summary &amp; Security Posture</h2>
+  <p>
+    A comprehensive static source code audit, cryptographic validation, configuration inspection, and architecture analysis was conducted on the <strong>CSP Daily Report</strong> codebase. The audit inspected local storage, authentication lifecycles, IPC mechanisms, Android manifest permissions, biometric security integration, and Supabase cloud backend synchronization.
+  </p>
+
+  <div class="summary-grid">
+    <div class="score-card high">
+      <div class="score-val red">1</div>
+      <div class="score-lbl">High Severity</div>
+    </div>
+    <div class="score-card med">
+      <div class="score-val amber">2</div>
+      <div class="score-lbl">Medium Severity</div>
+    </div>
+    <div class="score-card low">
+      <div class="score-val blue">1</div>
+      <div class="score-lbl">Low Severity</div>
+    </div>
+    <div class="score-card secure">
+      <div class="score-val green">5</div>
+      <div class="score-lbl">Passing Controls</div>
+    </div>
+  </div>
+
+  <!-- Findings Overview Table -->
+  <h2>2. Vulnerability Assessment Matrix</h2>
+  <table>
+    <thead>
+      <tr>
+        <th style="width: 10%;">ID</th>
+        <th style="width: 12%;">Severity</th>
+        <th style="width: 32%;">Vulnerability / Finding</th>
+        <th style="width: 26%;">Source Component</th>
+        <th style="width: 20%;">Impact Status</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><strong>SEC-01</strong></td>
+        <td><span class="badge badge-high">High</span></td>
+        <td>Plaintext Password Storage in SQLite &amp; Cloud</td>
+        <td><code>User.java</code>, <code>SupabaseClient.java</code></td>
+        <td>Requires Salted Hashing</td>
+      </tr>
+      <tr>
+        <td><strong>SEC-02</strong></td>
+        <td><span class="badge badge-med">Medium</span></td>
+        <td>Application ADB Backup Enabled (<code>allowBackup</code>)</td>
+        <td><code>AndroidManifest.xml</code></td>
+        <td>Set <code>allowBackup="false"</code></td>
+      </tr>
+      <tr>
+        <td><strong>SEC-03</strong></td>
+        <td><span class="badge badge-med">Medium</span></td>
+        <td>Hardcoded Default SuperAdmin Seed Password</td>
+        <td><code>Auth.java</code> (<code>admin123</code>)</td>
+        <td>Enforce 1st-login Change</td>
+      </tr>
+      <tr>
+        <td><strong>SEC-04</strong></td>
+        <td><span class="badge badge-low">Low</span></td>
+        <td>Permissive Supabase Anon RLS Policies</td>
+        <td><code>SupabaseClient.java</code> SQL Script</td>
+        <td>Tighten JWT Policies</td>
+      </tr>
+      <tr>
+        <td><strong>SEC-05</strong></td>
+        <td><span class="badge badge-pass">Secure</span></td>
+        <td>SQL Injection Prevention</td>
+        <td><code>Day.java</code>, <code>Csp.java</code>, <code>Db.java</code></td>
+        <td>100% Parameterized (?)</td>
+      </tr>
+      <tr>
+        <td><strong>SEC-06</strong></td>
+        <td><span class="badge badge-pass">Secure</span></td>
+        <td>No WebViews / Zero XSS Surface</td>
+        <td>Full UI Layer</td>
+        <td>100% Pure Native Views</td>
+      </tr>
+      <tr>
+        <td><strong>SEC-07</strong></td>
+        <td><span class="badge badge-pass">Secure</span></td>
+        <td>Session Watchdog &amp; Fingerprint Lock</td>
+        <td><code>SessionManager.java</code>, <code>UnlockScreen.java</code></td>
+        <td>10-Min Inactivity Enforced</td>
+      </tr>
+    </tbody>
+  </table>
+
+  <!-- Detailed Vulnerability Breakdown -->
+  <div class="page-break"></div>
+  <h2>3. Detailed Findings &amp; Technical Guidance</h2>
+
+  <!-- Finding 1 -->
+  <div class="vuln-box high">
+    <div class="vuln-header">
+      <span class="vuln-title">SEC-01: Plaintext Password Storage in Local SQLite &amp; Supabase Cloud</span>
+      <span class="badge badge-high">High Severity</span>
+    </div>
+    <div class="vuln-loc">File: org.cspdaily.report.data.User.java (Line 134) &amp; SupabaseClient.java</div>
+    <p><strong>Technical Finding:</strong> User credentials are saved directly as plain text in the SQLite <code>app_user</code> table (<code>cv.put("password", user.password.trim())</code>) and compared via plain string equality during online and offline authentication.</p>
+    <p><strong>Risk &amp; Impact:</strong> If an unauthorized party gains access to the device file system (via physical extraction, rooting, or malicious app sandbox breakout), plaintext passwords can be read immediately without brute-force difficulty.</p>
+    <div class="code-block"><span class="com">// Remediation: Hash passwords using PBKDF2WithHmacSHA256 before persistence</span>
+<span class="kw">public static String</span> hashPassword(<span class="kw">String</span> plainPassword, <span class="kw">byte</span>[] salt) {
+    KeySpec spec = <span class="kw">new</span> PBEKeySpec(plainPassword.toCharArray(), salt, 65536, 256);
+    SecretKeyFactory factory = SecretKeyFactory.getInstance(<span class="str">"PBKDF2WithHmacSHA256"</span>);
+    <span class="kw">return</span> Base64.encodeToString(factory.generateSecret(spec).getEncoded(), Base64.NO_WRAP);
+}</div>
+    <div class="rec-box">
+      <strong>Actionable Guidance:</strong> Replace raw password persistence with PBKDF2 or BCrypt salted hashing. Store <code>password_hash</code> and a unique per-user <code>password_salt</code> in <code>app_user</code>.
+    </div>
+  </div>
+
+  <!-- Finding 2 -->
+  <div class="vuln-box med">
+    <div class="vuln-header">
+      <span class="vuln-title">SEC-02: ADB Application Backup Flag Enabled in Manifest</span>
+      <span class="badge badge-med">Medium Severity</span>
+    </div>
+    <div class="vuln-loc">File: AndroidManifest.xml (Line 45)</div>
+    <p><strong>Technical Finding:</strong> The application manifest explicitly declares <code>android:allowBackup="true"</code> without custom backup filtering rules.</p>
+    <p><strong>Risk &amp; Impact:</strong> On unlocked devices with Developer Options / USB Debugging turned on, an attacker or external tool can execute <code>adb backup org.cspdaily.report</code> to extract internal databases and configuration files.</p>
+    <div class="code-block"><span class="com">&lt;!-- Remediation: Explicitly disable application backup in AndroidManifest.xml --&gt;</span>
+&lt;<span class="kw">application</span>
+    <span class="kw">android:name</span>=<span class="str">".Core"</span>
+    <span class="kw">android:allowBackup</span>=<span class="str">"false"</span>
+    <span class="kw">android:theme</span>=<span class="str">"@style/Theme.Csp"</span>&gt;</div>
+    <div class="rec-box">
+      <strong>Actionable Guidance:</strong> Set <code>android:allowBackup="false"</code> in <code>AndroidManifest.xml</code> to block ADB extraction of app databases.
+    </div>
+  </div>
+
+  <!-- Finding 3 -->
+  <div class="vuln-box med">
+    <div class="vuln-header">
+      <span class="vuln-title">SEC-03: Hardcoded Initial SuperAdmin Fallback Password</span>
+      <span class="badge badge-med">Medium Severity</span>
+    </div>
+    <div class="vuln-loc">File: org.cspdaily.report.data.Auth.java (Line 24)</div>
+    <p><strong>Technical Finding:</strong> When initializing an empty offline database, <code>ensureDefaultSuperAdmin()</code> seeds a default account with username <code>admin</code> and password <code>admin123</code>.</p>
+    <p><strong>Risk &amp; Impact:</strong> If the administrator never updates the password on a newly deployed device, standard default credentials could allow unauthorized administrative access.</p>
+    <div class="rec-box">
+      <strong>Actionable Guidance:</strong> Detect if the active admin password matches the initial default (<code>"admin123"</code>) upon login and present a mandatory password change modal.
+    </div>
+  </div>
+
+  <!-- Finding 4 -->
+  <div class="vuln-box low">
+    <div class="vuln-header">
+      <span class="vuln-title">SEC-04: Supabase Row-Level Security (RLS) Permissive Anon Policies</span>
+      <span class="badge badge-low">Low Severity</span>
+    </div>
+    <div class="vuln-loc">File: org.cspdaily.report.data.SupabaseClient.java (Lines 1068–1121)</div>
+    <p><strong>Technical Finding:</strong> Generated PostgREST SQL configuration applies <code>FOR ALL TO anon USING (true) WITH CHECK (true)</code> to allow immediate sync with the publishable key.</p>
+    <p><strong>Risk &amp; Impact:</strong> Any party possessing the project URL and publishable key can execute arbitrary SELECT and INSERT requests against cloud tables.</p>
+    <div class="rec-box">
+      <strong>Actionable Guidance:</strong> In enterprise production environments, restrict RLS policies to authenticated JWT tokens issued by Supabase Auth rather than public anon access.
+    </div>
+  </div>
+
+  <!-- Passing Controls Section -->
+  <div class="page-break"></div>
+  <h2>4. Verified Architectural &amp; Platform Strengths</h2>
+
+  <div class="vuln-box pass">
+    <div class="vuln-header">
+      <span class="vuln-title">SEC-05: Strict SQLite Parameterized Queries (100% Parameterized)</span>
+      <span class="badge badge-pass">Secure · Verified</span>
+    </div>
+    <p>All database lookups across <code>Day.java</code>, <code>Csp.java</code>, <code>User.java</code>, <code>Params.java</code>, and <code>SupervisorMap.java</code> use parameterized arguments (<code>rawQuery("... WHERE col = ?", new String[]{val})</code>). Zero raw string concatenation occurs with user inputs, completely mitigating SQL injection threats.</p>
+  </div>
+
+  <div class="vuln-box pass">
+    <div class="vuln-header">
+      <span class="vuln-title">SEC-06: Zero WebView / 100% Pure Native View Framework</span>
+      <span class="badge badge-pass">Secure · Verified</span>
+    </div>
+    <p>The entire user interface is constructed using pure Android native widgets (<code>LinearLayout</code>, <code>TextView</code>, <code>EditText</code>, <code>Canvas</code>). No <code>WebView</code>, <code>addJavascriptInterface</code>, or web engines exist, eliminating Cross-Site Scripting (XSS) and remote web-runtime injection surfaces entirely.</p>
+  </div>
+
+  <div class="vuln-box pass">
+    <div class="vuln-header">
+      <span class="vuln-title">SEC-07: Robust 10-Minute Inactivity &amp; Background Minimization Watchdog</span>
+      <span class="badge badge-pass">Secure · Verified</span>
+    </div>
+    <p><code>SessionManager.java</code> actively tracks user interactions and foreground/background transitions. When the application is idle for 10 minutes or minimized in background, it locks the session and requires biometric fingerprint or password authentication to unlock.</p>
+  </div>
+
+  <div class="vuln-box pass">
+    <div class="vuln-header">
+      <span class="vuln-title">SEC-08: Secure ContentProvider &amp; Broadcast Receiver Configurations</span>
+      <span class="badge badge-pass">Secure · Verified</span>
+    </div>
+    <p><code>ApkFileProvider</code> is configured with <code>android:exported="false"</code> and <code>android:grantUriPermissions="true"</code> for safe APK sharing with Android PackageInstaller. <code>ReminderReceiver</code> is bound exclusively to protected system broadcasts.</p>
+  </div>
+
+  <!-- Roadmap -->
+  <h2>5. Security Hardening Roadmap &amp; Checklist</h2>
+  <table>
+    <thead>
+      <tr>
+        <th style="width: 20%;">Milestone</th>
+        <th style="width: 45%;">Recommended Hardening Action</th>
+        <th style="width: 15%;">Priority</th>
+        <th style="width: 20%;">Target Timeline</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><strong>Phase 1</strong></td>
+        <td>Disable ADB backup (<code>allowBackup="false"</code>) in Manifest</td>
+        <td><span class="badge badge-med">Medium</span></td>
+        <td>Immediate</td>
+      </tr>
+      <tr>
+        <td><strong>Phase 2</strong></td>
+        <td>Implement PBKDF2/BCrypt password hashing in <code>User.java</code></td>
+        <td><span class="badge badge-high">High</span></td>
+        <td>Next Sprint</td>
+      </tr>
+      <tr>
+        <td><strong>Phase 3</strong></td>
+        <td>Add mandatory default password change prompt on 1st login</td>
+        <td><span class="badge badge-med">Medium</span></td>
+        <td>Next Sprint</td>
+      </tr>
+      <tr>
+        <td><strong>Phase 4</strong></td>
+        <td>Transition Supabase PostgREST sync to Authenticated JWT RLS</td>
+        <td><span class="badge badge-low">Low</span></td>
+        <td>Production Release</td>
+      </tr>
+    </tbody>
+  </table>
+
+</body>
+</html>

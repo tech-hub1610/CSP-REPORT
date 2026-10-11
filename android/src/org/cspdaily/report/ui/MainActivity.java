@@ -35,6 +35,7 @@ import org.cspdaily.report.data.Auth;
 import org.cspdaily.report.data.User;
 import org.cspdaily.report.data.Params;
 import org.cspdaily.report.data.Settings;
+import org.cspdaily.report.data.UiState;
 import org.cspdaily.report.domain.Backup;
 import org.cspdaily.report.notify.Reminders;
 import org.cspdaily.report.security.BiometricHelper;
@@ -80,6 +81,9 @@ public class MainActivity extends Activity implements Screen.Host {
     protected void onCreate(Bundle bundle) {
         super.onCreate(bundle);
         try {
+            if (bundle == null) {
+                UiState.resetDate(this);
+            }
             buildUi();
             Reminders.handleIntent(this, getIntent());
         } catch (Throwable th) {
@@ -194,13 +198,15 @@ public class MainActivity extends Activity implements Screen.Host {
             } catch (Throwable ignored) {}
 
             boolean lockEnabled = org.cspdaily.report.data.Settings.flag(Core.get(this).dbRead(), org.cspdaily.report.data.Settings.SECURITY_LOCK_ENABLED, true);
-            if (lockEnabled) {
+            boolean biometricEnabled = org.cspdaily.report.data.Settings.flag(Core.get(this).dbRead(), org.cspdaily.report.data.Settings.SECURITY_BIOMETRIC_ENABLED, true);
+            boolean isProtected = lockEnabled || biometricEnabled;
+            if (isProtected) {
                 SessionManager.setLocked(true);
             }
 
             select(0);
 
-            if (lockEnabled && SessionManager.isLocked(this)) {
+            if (isProtected && SessionManager.isLocked(this)) {
                 showLockScreen();
             } else {
                 SessionManager.startInactivityWatchdog(this);
@@ -211,7 +217,12 @@ public class MainActivity extends Activity implements Screen.Host {
 
     public void showLockScreen() {
         if (!Auth.isLoggedIn(this) || this.screenHost == null) return;
-        if (top() instanceof UnlockScreen) return;
+        if (top() instanceof UnlockScreen) {
+            try {
+                top().refreshContent();
+            } catch (Throwable ignored) {}
+            return;
+        }
         if (this.navBar != null) this.navBar.setVisibility(View.GONE);
         if (this.fab != null) this.fab.setVisibility(View.GONE);
         if (this.syncStatusPill != null) this.syncStatusPill.setVisibility(View.GONE);
@@ -225,6 +236,7 @@ public class MainActivity extends Activity implements Screen.Host {
             pop();
         }
         Screen currentTop = top();
+        UiState.checkDayRollover(this);
         if (currentTop == null) {
             select(0);
         } else {
@@ -243,6 +255,7 @@ public class MainActivity extends Activity implements Screen.Host {
 
     public void onUserLoggedIn() {
         SessionManager.setLocked(false);
+        UiState.resetDate(this);
         for (int i = 0; i < this.tabRoot.length; i++) {
             this.tabRoot[i] = null;
         }
@@ -867,6 +880,7 @@ public class MainActivity extends Activity implements Screen.Host {
         if (this.screenHost == null) return;
         org.cspdaily.report.util.PhoneActions.onActivityResumed(this);
         SessionManager.onResume(this);
+        UiState.checkDayRollover(this);
         Screen pVar = top();
         if (pVar != null) {
             try {
@@ -909,6 +923,12 @@ public class MainActivity extends Activity implements Screen.Host {
     protected void onPause() {
         super.onPause();
         SessionManager.onPause(this);
+        Screen topScreen = top();
+        if (topScreen != null) {
+            try {
+                topScreen.onHideScreen();
+            } catch (Throwable ignored) {}
+        }
         org.cspdaily.report.data.SupabaseClient.removeSyncStatusListener(this.syncStatusListener);
         org.cspdaily.report.data.SupabaseClient.stopLiveSync(this.liveSyncListener);
     }

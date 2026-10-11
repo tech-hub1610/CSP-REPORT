@@ -39,7 +39,7 @@ import org.cspdaily.report.util.PhoneActions;
 
 /* loaded from: classes.dex */
 public class CspListScreen extends Screen {
-    private static final String[] FILTERS = {"All", "Pending", "Reported", "NIL", "Overdue", "Not Contacted", "Inactive"};
+    private static final String[] FILTERS = {"All CSPs", "All Pendings", "Follow-Up", "Attention Required", "Reported", "NIL", "Inactive"};
     private List<CspDay> all;
     private final TextView countLine;
     private final Empty empty;
@@ -54,38 +54,50 @@ public class CspListScreen extends Screen {
     private final Badge sortBadge;
 
     public CspListScreen(Context context, Screen.Host host) {
-        this(context, host, 0);
+        this(context, host, 0, "All CSPs");
     }
 
-    public CspListScreen(Context context, final Screen.Host host, int i) {
+    public CspListScreen(Context context, Screen.Host host, int i) {
+        this(context, host, i, "All CSPs");
+    }
+
+    public CspListScreen(Context context, final Screen.Host host, int i, String initialFilter) {
         super(context, host);
         String str;
         this.query = "";
-        this.filter = "All";
+        this.filter = (initialFilter != null && !initialFilter.isEmpty()) ? initialFilter : "All CSPs";
         this.all = new ArrayList();
         this.mode = i;
         this.sort = UiState.cspSort(context);
-        title(i == 0 ? "CSP directory" : "Choose a CSP");
+        title(i == 0 ? "CSPs Directory" : "Choose a CSP");
         if (i == 0) {
-            str = "Banking correspondents and targets";
+            str = "Banking correspondents & daily operations";
         } else {
             str = i == 1 ? "Then enter today's figures" : "Then log the contact";
         }
         subtitle(str);
-        if (i == 0) {
-            headerAction("Import CSV", new Runnable() {
-                @Override
-                public void run() {
-                    host.push(new CspImportScreen(context, host));
-                }
-            });
-        }
+        headerAction(sortWord(), new Runnable() {
+            @Override
+            public void run() {
+                CspListScreen.this.cycleSort();
+            }
+        });
         add(search(context), 0);
         this.filters = new Chips(context);
         this.filters.set(FILTERS);
         this.filters.allowNone(false);
-        this.filters.onChange(new Chips.OnPick() { // from class: org.cspdaily.report.ui.screen.CspListScreen.1
-            @Override // org.cspdaily.report.ui.widget.Chips.OnPick
+
+        int selectedIdx = 0;
+        for (int k = 0; k < FILTERS.length; k++) {
+            if (FILTERS[k].equalsIgnoreCase(this.filter)) {
+                selectedIdx = k;
+                break;
+            }
+        }
+        this.filters.select(selectedIdx);
+
+        this.filters.onChange(new Chips.OnPick() {
+            @Override
             public void pick(int i2, String str2) {
                 CspListScreen.this.filter = str2;
                 UiState.setCspFilter(CspListScreen.this.getContext(), str2);
@@ -102,8 +114,8 @@ public class CspListScreen extends Screen {
         linearLayout.addView(this.countLine, new LinearLayout.LayoutParams(0, -2, 1.0f));
         this.sortBadge = new Badge(context);
         this.sortBadge.setKind(0);
-        this.sortBadge.setOnClickListener(new View.OnClickListener() { // from class: org.cspdaily.report.ui.screen.CspListScreen.2
-            @Override // android.view.View.OnClickListener
+        this.sortBadge.setOnClickListener(new View.OnClickListener() {
+            @Override
             public void onClick(View view) {
                 CspListScreen.this.cycleSort();
             }
@@ -194,6 +206,12 @@ public class CspListScreen extends Screen {
             this.sort = "pdf";
         }
         UiState.setCspSort(getContext(), this.sort);
+        headerAction(sortWord(), new Runnable() {
+            @Override
+            public void run() {
+                CspListScreen.this.cycleSort();
+            }
+        });
         render();
     }
 
@@ -339,14 +357,17 @@ public class CspListScreen extends Screen {
         if ("NIL".equalsIgnoreCase(this.filter) || "Nil".equalsIgnoreCase(this.filter)) {
             return cspDay.isNil;
         }
-        if ("Pending".equalsIgnoreCase(this.filter)) {
-            return cspDay.isPending();
+        if ("Follow-Up".equalsIgnoreCase(this.filter) || "Follow Up".equalsIgnoreCase(this.filter) || "Follow-up".equalsIgnoreCase(this.filter)) {
+            return cspDay.isPending() && !Day.NOT_CONTACTED.equalsIgnoreCase(cspDay.followupStatus) && cspDay.followupStatus != null && !cspDay.followupStatus.trim().isEmpty();
         }
-        if ("Overdue".equalsIgnoreCase(this.filter) || "Long pending".equalsIgnoreCase(this.filter)) {
-            return cspDay.isPending() && cspDay.pendingDays >= 3;
+        if ("All Pendings".equalsIgnoreCase(this.filter) || "Pending".equalsIgnoreCase(this.filter)) {
+            return cspDay.isPending() && (Day.NOT_CONTACTED.equalsIgnoreCase(cspDay.followupStatus) || cspDay.followupStatus == null || cspDay.followupStatus.trim().isEmpty());
         }
-        if ("Not Contacted".equalsIgnoreCase(this.filter)) {
-            return cspDay.isPending() && Day.NOT_CONTACTED.equals(cspDay.followupStatus);
+        if ("Attention Required".equalsIgnoreCase(this.filter) || "Overdue".equalsIgnoreCase(this.filter)) {
+            boolean hasReasonOrPromise = !cspDay.effectiveReasonOrPromise().isEmpty();
+            boolean isLongPending = cspDay.pendingDays >= 3;
+            boolean isCriticalUncontacted = cspDay.pendingDays >= 2 && Day.NOT_CONTACTED.equalsIgnoreCase(cspDay.followupStatus);
+            return cspDay.isPending() && (isLongPending || hasReasonOrPromise || isCriticalUncontacted);
         }
         return true;
     }

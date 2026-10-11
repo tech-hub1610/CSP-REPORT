@@ -36,9 +36,9 @@ import org.cspdaily.report.util.PhoneActions;
 
 /* loaded from: classes.dex */
 public class FollowupScreen extends Screen {
-    private static final String[] MODES = {"All pending", "Not contacted", "Contacted today", "Long pending", "Nil figure"};
-    private static final int[] TILE_OFF = {R.color.hero_pending, R.color.hero_pending, R.color.paper, R.color.hero_pending, R.color.hero_nil};
-    private static final int[] TILE_ON = {R.color.danger, R.color.danger, R.color.navy_950, R.color.danger, R.color.info};
+    private static final String[] MODES = {"All CSPs", "All pending", "Follow-Up", "Attention Required", "Nil figure"};
+    private static final int[] TILE_OFF = {R.color.paper, R.color.hero_pending, R.color.hero_pending, R.color.hero_pending, R.color.hero_nil};
+    private static final int[] TILE_ON = {R.color.navy_950, R.color.danger, R.color.ok, R.color.danger, R.color.info};
     private String date;
     private final Empty empty;
     private final TextView lead;
@@ -51,6 +51,7 @@ public class FollowupScreen extends Screen {
     private final TextView[] tileCounts;
     private final LinearLayout tileRow;
     private final LinearLayout[] tiles;
+    private String sort;
 
     public FollowupScreen(Context context, Screen.Host host) {
         this(context, host, UiState.date(context));
@@ -63,10 +64,17 @@ public class FollowupScreen extends Screen {
         this.mode = MODES[0];
         this.query = "";
         this.rows = new ArrayList();
+        this.sort = UiState.cspSort(context);
         if (str != null) {
             UiState.setDate(context, str);
         }
         title("Follow-up");
+        headerAction(sortWord(), new Runnable() {
+            @Override
+            public void run() {
+                FollowupScreen.this.cycleSort();
+            }
+        });
         this.lead = Cards.bold(context, "", 15.0f, R.color.paper);
         this.lead.setSingleLine(true);
         this.lead.setEllipsize(TextUtils.TruncateAt.END);
@@ -211,16 +219,52 @@ public class FollowupScreen extends Screen {
         }
         switch (i) {
             case 0:
-                return cspDay.isPending();
+                return true;
             case 1:
-                return cspDay.isPending() && Day.NOT_CONTACTED.equals(cspDay.followupStatus);
+                return cspDay.isPending() && (Day.NOT_CONTACTED.equalsIgnoreCase(cspDay.followupStatus) || cspDay.followupStatus == null || cspDay.followupStatus.trim().isEmpty());
             case 2:
-                return cspDay.isPending() && !Day.NOT_CONTACTED.equals(cspDay.followupStatus);
+                return cspDay.isPending() && !Day.NOT_CONTACTED.equalsIgnoreCase(cspDay.followupStatus) && cspDay.followupStatus != null && !cspDay.followupStatus.trim().isEmpty();
             case 3:
-                return cspDay.isPending() && cspDay.pendingDays >= 3;
+                boolean hasReasonOrPromise = !cspDay.effectiveReasonOrPromise().isEmpty();
+                boolean isLongPending = cspDay.pendingDays >= 3;
+                boolean isCriticalUncontacted = cspDay.pendingDays >= 2 && Day.NOT_CONTACTED.equalsIgnoreCase(cspDay.followupStatus);
+                return cspDay.isPending() && (isLongPending || hasReasonOrPromise || isCriticalUncontacted);
             default:
                 return cspDay.isNil;
         }
+    }
+
+    public void cycleSort() {
+        if ("pdf".equals(this.sort)) {
+            this.sort = "name";
+        } else if ("name".equals(this.sort)) {
+            this.sort = "code";
+        } else if ("code".equals(this.sort)) {
+            this.sort = "branch";
+        } else {
+            this.sort = "pdf";
+        }
+        UiState.setCspSort(getContext(), this.sort);
+        headerAction(sortWord(), new Runnable() {
+            @Override
+            public void run() {
+                cycleSort();
+            }
+        });
+        render();
+    }
+
+    private String sortWord() {
+        if ("name".equals(this.sort)) {
+            return "Sort: name";
+        }
+        if ("code".equals(this.sort)) {
+            return "Sort: code";
+        }
+        if ("branch".equals(this.sort)) {
+            return "Sort: branch";
+        }
+        return "Sort: register";
     }
 
     private View tile(Context context, final int i) {
@@ -247,8 +291,8 @@ public class FollowupScreen extends Screen {
             layoutParams.leftMargin = Ui.dp(context, 6.0f);
         }
         linearLayout.setLayoutParams(layoutParams);
-        linearLayout.setOnClickListener(new View.OnClickListener() { // from class: org.cspdaily.report.ui.screen.FollowupScreen.3
-            @Override // android.view.View.OnClickListener
+        linearLayout.setOnClickListener(new View.OnClickListener() {
+            @Override
             public void onClick(View view) {
                 FollowupScreen.this.setMode(i);
             }
@@ -288,16 +332,28 @@ public class FollowupScreen extends Screen {
                 arrayList.add(cspDay);
             }
         }
-        Collections.sort(arrayList, new Comparator<CspDay>() { // from class: org.cspdaily.report.ui.screen.FollowupScreen.4
-            @Override // java.util.Comparator
+        final boolean equalsCode = "code".equals(this.sort);
+        final boolean equalsBranch = "branch".equals(this.sort);
+        final boolean equalsName = "name".equals(this.sort);
+        Collections.sort(arrayList, new Comparator<CspDay>() {
+            @Override
             public int compare(CspDay cspDay2, CspDay cspDay3) {
-                if (cspDay3.pendingDays != cspDay2.pendingDays) {
-                    return cspDay3.pendingDays - cspDay2.pendingDays;
+                if (equalsCode) {
+                    int c = ci(cspDay2.code).compareTo(ci(cspDay3.code));
+                    if (c != 0) return c;
+                } else if (equalsBranch) {
+                    int b = ci(cspDay2.branch).compareTo(ci(cspDay3.branch));
+                    if (b != 0) return b;
+                } else if (equalsName) {
+                    int n = ci(cspDay2.name).compareTo(ci(cspDay3.name));
+                    if (n != 0) return n;
+                } else {
+                    if (cspDay3.pendingDays != cspDay2.pendingDays) {
+                        return cspDay3.pendingDays - cspDay2.pendingDays;
+                    }
                 }
-                String n1 = cspDay2.name == null ? "" : cspDay2.name.toLowerCase(Locale.US);
-                String n2 = cspDay3.name == null ? "" : cspDay3.name.toLowerCase(Locale.US);
-                int c = n1.compareTo(n2);
-                return c != 0 ? c : Long.compare(cspDay2.id, cspDay3.id);
+                int n = ci(cspDay2.name).compareTo(ci(cspDay3.name));
+                return n != 0 ? n : Long.compare(cspDay2.id, cspDay3.id);
             }
         });
         this.list.removeAllViews();
@@ -353,6 +409,10 @@ public class FollowupScreen extends Screen {
 
     private boolean Csp_isActive(CspDay cspDay) {
         return Csp.ACTIVE.equals(cspDay.status);
+    }
+
+    private static String ci(String str) {
+        return str == null ? "" : str.trim().toLowerCase(java.util.Locale.US);
     }
 
     private static LinearLayout.LayoutParams mw() {

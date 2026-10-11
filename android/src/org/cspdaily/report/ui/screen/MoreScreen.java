@@ -117,162 +117,163 @@ public class MoreScreen extends Screen {
         }
 
         if (Auth.isAdmin(context)) {
-            Section sectionAdmin = new Section(context);
-            sectionAdmin.set(isSuper ? "👑 EXECUTIVE SUPERADMIN COMMANDS" : "⚡ Admin & Fleet Operations");
-            add(sectionAdmin, 6);
-            LinearLayout cardAdmin = isSuper ? Cards.obsidianGold(context) : Cards.cardFlat(context);
+            LinearLayout bodyAdmin = new LinearLayout(context);
+            bodyAdmin.setOrientation(1);
             if (isSuper) {
-                cardAdmin.addView(row(context, R.drawable.ic_crown, "APK Releases & Remote Config", "Manage APK builds, mandatory updates & cloud feature flags", new View.OnClickListener() {
+                bodyAdmin.addView(row(context, R.drawable.ic_crown, "APK Releases & Remote Config", "Manage APK builds, mandatory updates & cloud feature flags", new View.OnClickListener() {
                     @Override
                     public void onClick(View view) {
                         MoreScreen.this.host.push(new AppUpdatesScreen(context, MoreScreen.this.host));
                     }
                 }));
             }
-            cardAdmin.addView(row(context, R.drawable.ic_shield_check, "Staff & User Credentials", "Roster, roles (Superadmin / Admin / Supervisor) & passwords", new View.OnClickListener() {
+            bodyAdmin.addView(row(context, R.drawable.ic_shield_check, "Staff & User Credentials", "Roster, roles (Superadmin / Admin / Supervisor) & passwords", new View.OnClickListener() {
                 @Override
                 public void onClick(View view) {
                     MoreScreen.this.host.push(new SupervisorManageScreen(context, MoreScreen.this.host));
                 }
             }));
-            cardAdmin.addView(row(context, R.drawable.ic_trending, "Supervisor Targets Master", "Set daily parameter quotas and targets per supervisor", new View.OnClickListener() {
+            bodyAdmin.addView(row(context, R.drawable.ic_trending, "Supervisor Targets Master", "Set daily parameter quotas and targets per supervisor", new View.OnClickListener() {
                 @Override
                 public void onClick(View view) {
                     MoreScreen.this.host.push(new SupervisorTargetScreen(context, MoreScreen.this.host, UiState.date(context)));
                 }
             }));
-            cardAdmin.addView(row(context, R.drawable.ic_note, "Broadcast Bulletins & Notices", "Post priority notices and operational directives to staff", new View.OnClickListener() {
+            bodyAdmin.addView(row(context, R.drawable.ic_note, "Broadcast Bulletins & Notices", "Post priority notices and operational directives to staff", new View.OnClickListener() {
                 @Override
                 public void onClick(View view) {
                     MoreScreen.this.host.push(new AdminInstructionScreen(context, MoreScreen.this.host, UiState.date(context)));
                 }
             }));
-            cardAdmin.addView(row(context, R.drawable.ic_refresh, "Supabase Cloud Central", "Cloud synchronization status, health ping & SQL schema backup", new View.OnClickListener() {
+            bodyAdmin.addView(row(context, R.drawable.ic_refresh, "Supabase Cloud Central", "Cloud synchronization status, health ping & SQL schema backup", new View.OnClickListener() {
                 @Override
                 public void onClick(View view) {
                     MoreScreen.this.host.push(new SupabaseSyncScreen(context, MoreScreen.this.host));
                 }
             }));
-            add(cardAdmin, 0);
+            add(collapsibleCard(context, R.drawable.ic_crown, R.color.primary_600, isSuper ? "👑 Executive Superadmin Commands" : "⚡ Admin & Fleet Operations", "Staff, quotas, directives & cloud central", false, bodyAdmin), 8);
         }
 
-        Section section = new Section(context);
-        section.set("Today's operations");
-        add(section, 6);
-        LinearLayout cardFlat = Cards.cardFlat(context);
-        cardFlat.addView(row(context, R.drawable.ic_bank, "Office note", "Text appended to the group message", new View.OnClickListener() { // from class: org.cspdaily.report.ui.screen.MoreScreen.1
-            @Override // android.view.View.OnClickListener
+        // Today's Operations Collapsible Card
+        LinearLayout bodyOps = new LinearLayout(context);
+        bodyOps.setOrientation(1);
+        bodyOps.addView(row(context, R.drawable.ic_bank, "Office note", "Text appended to the group message", new View.OnClickListener() {
+            @Override
             public void onClick(View view) {
                 MoreScreen.this.host.push(new OfficeNoteScreen(MoreScreen.this.getContext(), MoreScreen.this.host, UiState.date(MoreScreen.this.getContext())));
             }
         }));
-        cardFlat.addView(row(context, R.drawable.ic_trending, "Daily targets", "Set bulk or individual CSP targets for the day", new View.OnClickListener() {
+        bodyOps.addView(row(context, R.drawable.ic_trending, "Daily targets", "Set bulk or individual CSP targets for the day", new View.OnClickListener() {
             @Override
             public void onClick(View view) {
                 MoreScreen.this.host.push(new DailyTargetScreen(MoreScreen.this.getContext(), MoreScreen.this.host, UiState.date(MoreScreen.this.getContext())));
             }
         }));
-        cardFlat.addView(row(context, R.drawable.ic_calendar, "Business day", "Working, Sunday, holiday or closure", new View.OnClickListener() { // from class: org.cspdaily.report.ui.screen.MoreScreen.2
-            @Override // android.view.View.OnClickListener
+        bodyOps.addView(row(context, R.drawable.ic_calendar, "Business day", "Working, Sunday, holiday or closure", new View.OnClickListener() {
+            @Override
             public void onClick(View view) {
                 MoreScreen.this.host.push(new BusinessDayScreen(MoreScreen.this.getContext(), MoreScreen.this.host, UiState.date(MoreScreen.this.getContext())));
             }
         }));
-        add(cardFlat, 0);
+        add(collapsibleCard(context, R.drawable.ic_calendar, R.color.primary_600, "Today's Operations", "Office note, daily targets & business day", true, bodyOps), 8);
 
-        Section sectionCsp = new Section(context);
-        sectionCsp.set("CSP management");
-        add(sectionCsp, 6);
-        LinearLayout cardCsp = Cards.cardFlat(context);
-        cardCsp.addView(row(context, R.drawable.ic_edit, "Manage CSPs (Edit / Delete)", "Add, edit master details or delete CSPs", new View.OnClickListener() {
+        // CSP Management Collapsible Card
+        LinearLayout bodyCsp = new LinearLayout(context);
+        bodyCsp.setOrientation(1);
+        bodyCsp.addView(row(context, R.drawable.ic_edit, "Manage CSPs (Edit / Delete)", "Add, edit master details or delete CSPs", new View.OnClickListener() {
             @Override
             public void onClick(View view) {
                 MoreScreen.this.host.push(new CspManageScreen(MoreScreen.this.getContext(), MoreScreen.this.host));
             }
         }));
-        cardCsp.addView(row(context, R.drawable.ic_add_circle, "Add new CSP", "Register a new banking correspondent", new View.OnClickListener() {
+        bodyCsp.addView(row(context, R.drawable.ic_add_circle, "Add new CSP", "Register a new banking correspondent", new View.OnClickListener() {
             @Override
             public void onClick(View view) {
                 MoreScreen.this.host.push(new CspEditScreen(MoreScreen.this.getContext(), MoreScreen.this.host, 0L));
             }
         }));
-        cardCsp.addView(row(context, R.drawable.ic_download, "Import CSPs (CSV)", "Bulk import CSPs from spreadsheet with CSV format", new View.OnClickListener() {
+        bodyCsp.addView(row(context, R.drawable.ic_download, "Import CSPs (CSV)", "Bulk import CSPs from spreadsheet with CSV format", new View.OnClickListener() {
             @Override
             public void onClick(View view) {
                 MoreScreen.this.host.push(new CspImportScreen(MoreScreen.this.getContext(), MoreScreen.this.host));
             }
         }));
-        add(cardCsp, 0);
+        add(collapsibleCard(context, R.drawable.ic_csp, R.color.primary_600, "CSP Management", "Manage, register & import correspondents", true, bodyCsp), 8);
 
-        Section section2 = new Section(context);
-        section2.set("Notifications");
-        add(section2, 6);
-        LinearLayout card = Cards.card(context);
-        card.setPadding(0, 0, 0, 0);
-        toggle(card, "All reminders", Settings.NOTIF_ENABLED, true);
-        toggle(card, "Daily report reminder", Settings.NOTIF_PENDING, true);
-        timeRow(card, "Reminder time", Settings.NOTIF_PENDING_TIME, "16:00");
-        toggle(card, "Follow-up reminder", Settings.NOTIF_FOLLOWUP, true);
-        timeRow(card, "Follow-up time", Settings.NOTIF_FOLLOWUP_TIME, "18:00");
-        toggle(card, "Long pending alert", Settings.NOTIF_LONG_PENDING, true);
-        numberRow(card, "Long pending after", Settings.NOTIF_LONG_THRESH, "3", "working days");
-        toggle(card, "100% completion notice", Settings.NOTIF_COMPLETION, true);
-        add(card, 0);
-        card.addView(Cards.label(context, "Reminders are scheduled with AlarmManager and fire with no network, no browser and no service worker.", R.style.Text_Meta, R.color.ink_4), top(context, 10));
+        // Notifications & Reminders Collapsible Card
+        LinearLayout bodyNotif = new LinearLayout(context);
+        bodyNotif.setOrientation(1);
+        bodyNotif.setPadding(0, 0, 0, 0);
+        toggle(bodyNotif, "All reminders", Settings.NOTIF_ENABLED, true);
+        toggle(bodyNotif, "Daily report reminder", Settings.NOTIF_PENDING, true);
+        timeRow(bodyNotif, "Reminder time", Settings.NOTIF_PENDING_TIME, "16:00");
+        toggle(bodyNotif, "Follow-up reminder", Settings.NOTIF_FOLLOWUP, true);
+        timeRow(bodyNotif, "Follow-up time", Settings.NOTIF_FOLLOWUP_TIME, "18:00");
+        toggle(bodyNotif, "Long pending alert", Settings.NOTIF_LONG_PENDING, true);
+        numberRow(bodyNotif, "Long pending after", Settings.NOTIF_LONG_THRESH, "3", "working days");
+        toggle(bodyNotif, "100% completion notice", Settings.NOTIF_COMPLETION, true);
+        TextView notifFoot = Cards.label(context, "Reminders are scheduled with AlarmManager and fire with no network, no browser and no service worker.", R.style.Text_Meta, R.color.ink_4);
+        Ui.pad(notifFoot, 14, 8, 14, 8);
+        bodyNotif.addView(notifFoot, mw());
         if (Build.VERSION.SDK_INT >= 33 && !Notifier.permitted(context)) {
             LinearLayout card2 = Cards.card(context);
             card2.setOrientation(0);
             card2.setGravity(16);
-            card2.setBackground(Ui.round(context, Ui.color(context, R.color.warn_bg), 18.0f, Ui.color(context, R.color.warn_border), 1.0f));
+            card2.setBackground(Ui.round(context, Ui.color(context, R.color.warn_bg), 14.0f, Ui.color(context, R.color.warn_border), 1.0f));
+            Ui.pad(card2, 12, 10, 12, 10);
             card2.addView(Cards.label(context, "Notification permission is off — reminders will not appear. Tap to allow.", R.style.Text_Body, R.color.warn), weight1());
-            card2.setOnClickListener(new View.OnClickListener() { // from class: org.cspdaily.report.ui.screen.MoreScreen.3
-                @Override // android.view.View.OnClickListener
+            card2.setOnClickListener(new View.OnClickListener() {
+                @Override
                 public void onClick(View view) {
                     ((Activity) MoreScreen.this.getContext()).requestPermissions(new String[]{"android.permission.POST_NOTIFICATIONS"}, 41);
                 }
             });
-            add(card2, 10);
+            LinearLayout.LayoutParams c2lp = mw();
+            c2lp.leftMargin = Ui.dp(context, 14.0f);
+            c2lp.rightMargin = Ui.dp(context, 14.0f);
+            c2lp.bottomMargin = Ui.dp(context, 10.0f);
+            bodyNotif.addView(card2, c2lp);
         }
-        Section section3 = new Section(context);
-        section3.set("Hourly reporting");
-        add(section3, 6);
-        LinearLayout card3 = Cards.card(context);
-        card3.setPadding(0, 0, 0, 0);
-        toggle(card3, "Hourly reporting & target alerts", Settings.HOURLY_ENABLED, false);
-        timeRow(card3, "Window opens", Settings.HOURLY_START, "10:00");
-        timeRow(card3, "Window closes", Settings.HOURLY_END, "18:00");
-        card3.addView(Cards.label(context, "Sends hourly notifications with parameter-wise target progress and pending CSP count to follow up and take reports.", R.style.Text_Meta, R.color.ink_3), top(context, 10));
-        add(card3, 0);
+        add(collapsibleCard(context, R.drawable.ic_bell, R.color.primary_600, "Notifications & Reminders", "Alarm schedules, daily & follow-up alerts", false, bodyNotif), 8);
 
-        // Security & Session Lock Section
-        Section sectionSec = new Section(context);
-        sectionSec.set("Security & Session Lock");
-        add(sectionSec, 6);
-        LinearLayout cardSec = Cards.card(context);
-        cardSec.setPadding(0, 0, 0, 0);
+        // Hourly Reporting Collapsible Card
+        LinearLayout bodyHourly = new LinearLayout(context);
+        bodyHourly.setOrientation(1);
+        bodyHourly.setPadding(0, 0, 0, 0);
+        toggle(bodyHourly, "Hourly reporting & target alerts", Settings.HOURLY_ENABLED, false);
+        timeRow(bodyHourly, "Window opens", Settings.HOURLY_START, "10:00");
+        timeRow(bodyHourly, "Window closes", Settings.HOURLY_END, "18:00");
+        TextView hourlyFoot = Cards.label(context, "Sends hourly notifications with parameter-wise target progress and pending CSP count to follow up and take reports.", R.style.Text_Meta, R.color.ink_3);
+        Ui.pad(hourlyFoot, 14, 8, 14, 8);
+        bodyHourly.addView(hourlyFoot, mw());
+        add(collapsibleCard(context, R.drawable.ic_clock, R.color.primary_600, "Hourly Reporting & Targets", "Progress notifications & active window", false, bodyHourly), 8);
+
+        // Security & Session Lock Collapsible Card
+        LinearLayout bodySec = new LinearLayout(context);
+        bodySec.setOrientation(1);
+        bodySec.setPadding(0, 0, 0, 0);
 
         final boolean hasFpHw = BiometricHelper.isHardwareDetected(context);
         final boolean hasFpEnrolled = BiometricHelper.hasEnrolledFingerprints(context);
 
-        toggle(cardSec, "Device Fingerprint Service", Settings.SECURITY_BIOMETRIC_ENABLED, true);
-        toggle(cardSec, "Auto-Lock Session (10-min)", Settings.SECURITY_LOCK_ENABLED, true);
+        toggle(bodySec, "Device Fingerprint Service", Settings.SECURITY_BIOMETRIC_ENABLED, true);
+        toggle(bodySec, "Auto-Lock Session", Settings.SECURITY_LOCK_ENABLED, true);
+        lockTimeoutRow(bodySec);
 
         String fpSummary = BiometricHelper.getBiometricStatusSummary(context);
-        TextView fpStatusLabel = Cards.label(context, "Fingerprint: " + fpSummary + " · 10-min inactivity or background lock", R.style.Text_Meta, (hasFpHw && hasFpEnrolled) ? R.color.primary_700 : R.color.ink_4);
-        cardSec.addView(fpStatusLabel, top(context, 10));
-        add(cardSec, 0);
-
-        LinearLayout cardSecActions = Cards.cardFlat(context);
+        TextView fpStatusLabel = Cards.label(context, "Fingerprint: " + fpSummary + " · Auto-lock active on minimize & inactivity", R.style.Text_Meta, (hasFpHw && hasFpEnrolled) ? R.color.primary_700 : R.color.ink_4);
+        Ui.pad(fpStatusLabel, 14, 8, 14, 8);
+        bodySec.addView(fpStatusLabel, mw());
 
         if (hasFpHw && !hasFpEnrolled) {
-            cardSecActions.addView(row(context, R.drawable.ic_fingerprint, "Setup Fingerprint on Device", "Register your fingerprint in Android Security Settings", new View.OnClickListener() {
+            bodySec.addView(row(context, R.drawable.ic_fingerprint, "Setup Fingerprint on Device", "Register your fingerprint in Android Security Settings", new View.OnClickListener() {
                 @Override
                 public void onClick(View v) {
                     BiometricHelper.openDeviceSecuritySettings(context);
                 }
             }));
         } else if (hasFpHw && hasFpEnrolled) {
-            cardSecActions.addView(row(context, R.drawable.ic_fingerprint, "Test Fingerprint Sensor", "Verify scanner and link fingerprint to this account", new View.OnClickListener() {
+            bodySec.addView(row(context, R.drawable.ic_fingerprint, "Test Fingerprint Sensor", "Verify scanner and link fingerprint to this account", new View.OnClickListener() {
                 @Override
                 public void onClick(View v) {
                     if (context instanceof Activity) {
@@ -299,7 +300,7 @@ public class MoreScreen extends Screen {
             }));
         }
 
-        cardSecActions.addView(row(context, R.drawable.ic_lock, "Lock Session Now", "Immediately lock session and require re-authentication", new View.OnClickListener() {
+        bodySec.addView(row(context, R.drawable.ic_lock, "Lock Session Now", "Immediately lock session and require re-authentication", new View.OnClickListener() {
             @Override
             public void onClick(View v) {
                 if (context instanceof MainActivity) {
@@ -308,50 +309,71 @@ public class MoreScreen extends Screen {
                 }
             }
         }));
-        add(cardSecActions, 0);
+        add(collapsibleCard(context, R.drawable.ic_fingerprint, R.color.primary_600, "Security & Session Lock", "Biometrics, auto-lock & session lock", false, bodySec), 8);
 
-        Section section4 = new Section(context);
-        section4.set("Data");
-        add(section4, 6);
-        LinearLayout cardFlat2 = Cards.cardFlat(context);
-        cardFlat2.addView(row(context, R.drawable.ic_upload, "Export backup", "Whole database as JSON", new View.OnClickListener() { // from class: org.cspdaily.report.ui.screen.MoreScreen.4
-            @Override // android.view.View.OnClickListener
-            public void onClick(View view) {
-                MoreScreen.this.exportBackup();
-            }
-        }));
-        cardFlat2.addView(row(context, R.drawable.ic_download, "Restore backup", "Replace local data from a JSON file", new View.OnClickListener() { // from class: org.cspdaily.report.ui.screen.MoreScreen.5
-            @Override // android.view.View.OnClickListener
-            public void onClick(View view) {
-                MoreScreen.this.restoreBackup();
-            }
-        }));
-        cardFlat2.addView(row(context, R.drawable.ic_pdf, "Export day CSV", "Figures for the selected date", new View.OnClickListener() { // from class: org.cspdaily.report.ui.screen.MoreScreen.6
-            @Override // android.view.View.OnClickListener
+        // Data & Backups (or Reports & Safe Sharing for Supervisor)
+        final boolean isAdmin = Auth.isAdmin(context);
+        LinearLayout bodyData = new LinearLayout(context);
+        bodyData.setOrientation(1);
+
+        if (isAdmin) {
+            // Admin only features: Full raw database JSON backup, restore & Cloud PostgreSQL sync
+            bodyData.addView(row(context, R.drawable.ic_upload, "Export backup", "Whole database as JSON", new View.OnClickListener() {
+                @Override
+                public void onClick(View view) {
+                    MoreScreen.this.exportBackup();
+                }
+            }));
+            bodyData.addView(row(context, R.drawable.ic_download, "Restore backup", "Replace local data from a JSON file", new View.OnClickListener() {
+                @Override
+                public void onClick(View view) {
+                    MoreScreen.this.restoreBackup();
+                }
+            }));
+            bodyData.addView(row(context, R.drawable.ic_upload, "Supabase Cloud Database", "Sync database with Supabase cloud PostgreSQL", new View.OnClickListener() {
+                @Override
+                public void onClick(View view) {
+                    MoreScreen.this.host.push(new SupabaseSyncScreen(context, MoreScreen.this.host));
+                }
+            }));
+        }
+
+        // Operational daily safe reports (available to both Admin and Supervisor)
+        bodyData.addView(row(context, R.drawable.ic_pdf, "Export day CSV", "Figures for the selected date", new View.OnClickListener() {
+            @Override
             public void onClick(View view) {
                 MoreScreen.this.exportCsv();
             }
         }));
-        cardFlat2.addView(row(context, R.drawable.ic_share, "Copy group office text", "The exact message format", new View.OnClickListener() { // from class: org.cspdaily.report.ui.screen.MoreScreen.7
-            @Override // android.view.View.OnClickListener
+        bodyData.addView(row(context, R.drawable.ic_share, "Copy group office text", "The exact message format", new View.OnClickListener() {
+            @Override
             public void onClick(View view) {
                 MoreScreen.this.copyOfficeText();
             }
         }));
-        cardFlat2.addView(row(context, R.drawable.ic_upload, "Supabase Cloud Database", "Sync database with Supabase cloud PostgreSQL", new View.OnClickListener() {
-            @Override
-            public void onClick(View view) {
-                MoreScreen.this.host.push(new SupabaseSyncScreen(context, MoreScreen.this.host));
-            }
-        }));
-        add(cardFlat2, 0);
-        Section section5 = new Section(context);
-        section5.set("About & Updates");
-        add(section5, 6);
-        LinearLayout card4 = Cards.card(context);
-        card4.addView(Cards.label(context, "CSP Daily Report — Native Android", R.style.Text_CardTitle, R.color.ink), mw());
-        card4.addView(Cards.label(context, "Standalone native build with SQLite offline persistence & Supabase cloud sync.", R.style.Text_Meta, R.color.ink_3), top(context, 4));
-        card4.addView(Cards.label(context, "Installed: v" + version(context) + " (Build " + UpdateManager.getInstalledVersionCode(context) + ") · Asia/Kolkata", R.style.Text_Nano, R.color.ink_4), top(context, 8));
+
+        if (!isAdmin) {
+            // Note for Supervisor: Explain restricted database controls
+            TextView supNotice = Cards.label(context, "🔒 Database backup, restore and cloud database sync are restricted to Administrator to protect data integrity.", R.style.Text_Meta, R.color.ink_3);
+            supNotice.setBackground(Ui.round(context, Ui.color(context, R.color.paper_2), 10.0f, Ui.color(context, R.color.line), 1.0f));
+            Ui.pad(supNotice, 12, 8, 12, 8);
+            LinearLayout.LayoutParams snlp = mw();
+            snlp.leftMargin = Ui.dp(context, 12.0f);
+            snlp.rightMargin = Ui.dp(context, 12.0f);
+            snlp.topMargin = Ui.dp(context, 6.0f);
+            snlp.bottomMargin = Ui.dp(context, 8.0f);
+            bodyData.addView(supNotice, snlp);
+        }
+
+        add(collapsibleCard(context, isAdmin ? R.drawable.ic_upload : R.drawable.ic_pdf, R.color.primary_600, isAdmin ? "Data & Database Backups" : "Reports & Safe Sharing", isAdmin ? "Full database backup, restore, cloud sync & CSV" : "Export day CSV & copy group text", false, bodyData), 8);
+
+        // About & Updates Collapsible Card
+        LinearLayout bodyAbout = new LinearLayout(context);
+        bodyAbout.setOrientation(1);
+        Ui.pad(bodyAbout, 14, 10, 14, 12);
+        bodyAbout.addView(Cards.label(context, "CSP Daily Report — Native Android", R.style.Text_CardTitle, R.color.ink), mw());
+        bodyAbout.addView(Cards.label(context, "Standalone native build with SQLite offline persistence & Supabase cloud sync.", R.style.Text_Meta, R.color.ink_3), top(context, 4));
+        bodyAbout.addView(Cards.label(context, "Installed: v" + version(context) + " (Build " + UpdateManager.getInstalledVersionCode(context) + ") · Asia/Kolkata", R.style.Text_Nano, R.color.ink_4), top(context, 8));
 
         View updateRow = row(context, R.drawable.ic_upload, "Check for Updates", "Verify latest releases and remote config", new View.OnClickListener() {
             @Override
@@ -359,8 +381,8 @@ public class MoreScreen extends Screen {
                 MoreScreen.this.host.push(new AppUpdatesScreen(context, MoreScreen.this.host));
             }
         });
-        card4.addView(updateRow, top(context, 10));
-        add(card4, 0);
+        bodyAbout.addView(updateRow, top(context, 10));
+        add(collapsibleCard(context, R.drawable.ic_shield_check, R.color.primary_600, "About & Updates", "v" + version(context) + " · Build " + UpdateManager.getInstalledVersionCode(context), false, bodyAbout), 8);
     }
 
     private String version(Context context) {
@@ -369,6 +391,76 @@ public class MoreScreen extends Screen {
         } catch (Exception e) {
             return "1.0";
         }
+    }
+
+    private View collapsibleCard(final Context context, int iconRes, int iconTint, String title, String subtitle, boolean defaultExpanded, final View body) {
+        LinearLayout outer = Cards.card(context);
+        outer.setOrientation(1);
+        outer.setPadding(0, 0, 0, 0);
+
+        LinearLayout headerRow = new LinearLayout(context);
+        headerRow.setOrientation(0);
+        headerRow.setGravity(16);
+        headerRow.setBackground(Ui.pressable(context, Ui.color(context, R.color.paper), Ui.rdp(context, R.dimen.r_md), false));
+        headerRow.setClickable(true);
+        Ui.pad(headerRow, 14, 12, 14, 12);
+
+        ImageView iconView = new ImageView(context);
+        int iconSize = Ui.dp(context, 20.0f);
+        LinearLayout.LayoutParams iconLp = new LinearLayout.LayoutParams(iconSize, iconSize);
+        iconLp.rightMargin = Ui.dp(context, 12.0f);
+        iconView.setLayoutParams(iconLp);
+        iconView.setImageResource(iconRes);
+        iconView.setColorFilter(Ui.color(context, iconTint));
+        headerRow.addView(iconView);
+
+        LinearLayout textCol = new LinearLayout(context);
+        textCol.setOrientation(1);
+        headerRow.addView(textCol, weight1());
+
+        TextView titleView = new TextView(context);
+        titleView.setText(title);
+        Ui.size(titleView, 14.5f);
+        titleView.setTypeface(Typeface.DEFAULT_BOLD);
+        titleView.setTextColor(Ui.color(context, R.color.ink));
+        textCol.addView(titleView, mw());
+
+        if (subtitle != null && !subtitle.isEmpty()) {
+            TextView subView = Cards.label(context, subtitle, R.style.Text_Meta, R.color.ink_3);
+            textCol.addView(subView, mw());
+        }
+
+        final ImageView chevron = new ImageView(context);
+        int chevSize = Ui.dp(context, 18.0f);
+        chevron.setLayoutParams(new LinearLayout.LayoutParams(chevSize, chevSize));
+        chevron.setImageResource(R.drawable.ic_chevron_right);
+        chevron.setColorFilter(Ui.color(context, R.color.ink_3));
+        chevron.setRotation(defaultExpanded ? 90.0f : 0.0f);
+        headerRow.addView(chevron);
+
+        outer.addView(headerRow, mw());
+
+        final View divider = new View(context);
+        divider.setBackgroundColor(Ui.color(context, R.color.line));
+        divider.setLayoutParams(new LinearLayout.LayoutParams(-1, Ui.dp(context, 1.0f)));
+        divider.setVisibility(defaultExpanded ? View.VISIBLE : View.GONE);
+        outer.addView(divider);
+
+        body.setVisibility(defaultExpanded ? View.VISIBLE : View.GONE);
+        outer.addView(body, mw());
+
+        final boolean[] expanded = new boolean[]{defaultExpanded};
+        headerRow.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                expanded[0] = !expanded[0];
+                body.setVisibility(expanded[0] ? View.VISIBLE : View.GONE);
+                divider.setVisibility(expanded[0] ? View.VISIBLE : View.GONE);
+                chevron.animate().rotation(expanded[0] ? 90.0f : 0.0f).setDuration(180).start();
+            }
+        });
+
+        return outer;
     }
 
     private View row(Context context, int i, int i2, String str, String str2, View.OnClickListener onClickListener) {
@@ -425,6 +517,9 @@ public class MoreScreen extends Screen {
             @Override // android.widget.CompoundButton.OnCheckedChangeListener
             public void onCheckedChanged(CompoundButton compoundButton, boolean z2) {
                 Settings.set(Core.get(context).db(), str2, z2 ? "1" : "0");
+                if (Settings.SECURITY_BIOMETRIC_ENABLED.equals(str2) && z2) {
+                    Settings.set(Core.get(context).db(), Settings.SECURITY_LOCK_ENABLED, "1");
+                }
                 Reminders.schedule(context);
             }
         });
@@ -437,6 +532,68 @@ public class MoreScreen extends Screen {
         view.setLayoutParams(layoutParams);
         linearLayout.addView(view, mw());
         return linearLayout2;
+    }
+
+    private View lockTimeoutRow(LinearLayout parent) {
+        final Context context = parent.getContext();
+        LinearLayout row = new LinearLayout(context);
+        row.setOrientation(0);
+        row.setGravity(16);
+        Ui.pad(row, 14, 10, 14, 10);
+        row.addView(Cards.label(context, "Lock when app minimized", R.style.Text_Body, R.color.ink), weight1());
+
+        final String[] labels = new String[]{"Immediately (Default)", "After 1 minute", "After 5 minutes", "After 10 minutes"};
+        final int[] values = new int[]{0, 60, 300, 600};
+
+        int currentSec = SessionManager.getLockTimeoutSec(Core.get(context).dbRead());
+        int selectedIdx = 0;
+        for (int i = 0; i < values.length; i++) {
+            if (values[i] == currentSec) {
+                selectedIdx = i;
+                break;
+            }
+        }
+
+        final TextView valText = Cards.bold(context, labels[selectedIdx], 14.0f, R.color.primary_700);
+        row.addView(valText, wrap());
+
+        row.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                int cur = SessionManager.getLockTimeoutSec(Core.get(context).dbRead());
+                int curIdx = 0;
+                for (int i = 0; i < values.length; i++) {
+                    if (values[i] == cur) {
+                        curIdx = i;
+                        break;
+                    }
+                }
+
+                new AlertDialog.Builder(context)
+                    .setTitle("Lock when app minimized")
+                    .setSingleChoiceItems(labels, curIdx, new DialogInterface.OnClickListener() {
+                        @Override
+                        public void onClick(DialogInterface dialog, int which) {
+                            int chosenSec = values[which];
+                            Settings.set(Core.get(context).db(), Settings.SECURITY_LOCK_TIMEOUT, String.valueOf(chosenSec));
+                            valText.setText(labels[which]);
+                            dialog.dismiss();
+                            host.toast("Lock timeout set: " + labels[which]);
+                        }
+                    })
+                    .setNegativeButton("Cancel", null)
+                    .show();
+            }
+        });
+
+        parent.addView(row, mw());
+        View div = new View(context);
+        div.setBackgroundColor(Ui.color(context, R.color.line));
+        LinearLayout.LayoutParams lp = new LinearLayout.LayoutParams(-1, Ui.dp(context, 1.0f));
+        lp.leftMargin = Ui.dp(context, 14.0f);
+        div.setLayoutParams(lp);
+        parent.addView(div, mw());
+        return row;
     }
 
     private View timeRow(LinearLayout linearLayout, String str, final String str2, final String str3) {

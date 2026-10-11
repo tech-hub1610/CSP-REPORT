@@ -38,6 +38,8 @@ public class UnlockScreen extends Screen {
     private View unlockBtn;
     private CancellationSignal biometricSignal;
     private boolean isBiometricActive = false;
+    private int biometricSessionId = 0;
+    private Runnable pendingPromptRunnable;
 
     public UnlockScreen(final Context context, final Screen.Host host) {
         super(context, host);
@@ -85,7 +87,7 @@ public class UnlockScreen extends Screen {
         heroCard.addView(lockTitle);
 
         TextView lockSub = new TextView(context);
-        lockSub.setText("Verification required after 10-min inactivity or exit");
+        lockSub.setText("Verification required after inactivity or app exit");
         Ui.size(lockSub, 12.5f);
         lockSub.setTextColor(Ui.color(context, R.color.hero_text_dim));
         lockSub.setGravity(17);
@@ -221,10 +223,13 @@ public class UnlockScreen extends Screen {
             Ui.pad(this.fpStatusText, 8, 2, 8, 0);
             fpCard.addView(this.fpStatusText);
 
+            Anim3D.attachTactilePress(fpCard);
+            fpCard.setClickable(true);
+            fpCard.setFocusable(true);
             fpCard.setOnClickListener(new View.OnClickListener() {
                 @Override
                 public void onClick(View v) {
-                    promptBiometric();
+                    forcePromptBiometric();
                 }
             });
 
@@ -327,20 +332,39 @@ public class UnlockScreen extends Screen {
     @Override
     public void onShowScreen() {
         super.onShowScreen();
-        postDelayed(new Runnable() {
+        if (pendingPromptRunnable != null) {
+            removeCallbacks(pendingPromptRunnable);
+            pendingPromptRunnable = null;
+        }
+        pendingPromptRunnable = new Runnable() {
             @Override
             public void run() {
-                Context context = getContext();
-                if (context instanceof Activity && !((Activity) context).isFinishing()) {
-                    boolean hasHardware = BiometricHelper.isHardwareDetected(context);
-                    boolean hasEnrolled = BiometricHelper.hasEnrolledFingerprints(context);
-                    boolean biometricEnabled = Settings.flag(Core.get(context).dbRead(), Settings.SECURITY_BIOMETRIC_ENABLED, true);
-                    if (hasHardware && hasEnrolled && biometricEnabled) {
-                        promptBiometric();
+                pendingPromptRunnable = null;
+                triggerBiometricIfAvailable();
+            }
+        };
+        postDelayed(pendingPromptRunnable, 300);
+    }
+
+    @Override
+    public void refreshContent() {
+        super.refreshContent();
+        if (!isBiometricActive) {
+            if (pendingPromptRunnable != null) {
+                removeCallbacks(pendingPromptRunnable);
+                pendingPromptRunnable = null;
+            }
+            pendingPromptRunnable = new Runnable() {
+                @Override
+                public void run() {
+                    pendingPromptRunnable = null;
+                    if (!isBiometricActive) {
+                        triggerBiometricIfAvailable();
                     }
                 }
-            }
-        }, 350);
+            };
+            postDelayed(pendingPromptRunnable, 250);
+        }
     }
 
     @Override
@@ -349,15 +373,61 @@ public class UnlockScreen extends Screen {
         cancelBiometric();
     }
 
-    private void promptBiometric() {
+    public void triggerBiometricIfAvailable() {
         Context context = getContext();
-        if (!(context instanceof Activity) || isBiometricActive) return;
+        if (!(context instanceof Activity) || ((Activity) context).isFinishing()) {
+            return;
+        }
+        boolean hasHardware = BiometricHelper.isHardwareDetected(context);
+        boolean hasEnrolled = BiometricHelper.hasEnrolledFingerprints(context);
+        boolean biometricEnabled = Settings.flag(Core.get(context).dbRead(), Settings.SECURITY_BIOMETRIC_ENABLED, true);
+        if (hasHardware && hasEnrolled && biometricEnabled) {
+            promptBiometric();
+        }
+    }
+
+    public void forcePromptBiometric() {
+        cancelBiometric();
+        if (this.fpStatusText != null) {
+            this.fpStatusText.setText("⚡ Initializing sensor — Touch sensor to unlock...");
+            this.fpStatusText.setTextColor(Ui.color(getContext(), R.color.primary_600));
+        }
+        if (this.fpIconView != null) {
+            this.fpIconView.setColorFilter(Ui.color(getContext(), R.color.primary_600));
+        }
+        if (pendingPromptRunnable != null) {
+            removeCallbacks(pendingPromptRunnable);
+            pendingPromptRunnable = null;
+        }
+        pendingPromptRunnable = new Runnable() {
+            @Override
+            public void run() {
+                pendingPromptRunnable = null;
+                promptBiometric();
+            }
+        };
+        postDelayed(pendingPromptRunnable, 120);
+    }
+
+    private synchronized void promptBiometric() {
+        Context context = getContext();
+        if (!(context instanceof Activity) || ((Activity) context).isFinishing()) {
+            return;
+        }
+
+        // Cancel previous signal if still lingering
+        if (biometricSignal != null && !biometricSignal.isCanceled()) {
+            try {
+                biometricSignal.cancel();
+            } catch (Throwable ignored) {}
+            biometricSignal = null;
+        }
+
+        final int thisSession = ++biometricSessionId;
+        isBiometricActive = true;
 
         final User user = Auth.currentUser(context);
         String username = user != null ? user.username : "";
-
-        cancelBiometric();
-        isBiometricActive = true;
 
         if (this.fpStatusText != null) {
             this.fpStatusText.setText("⚡ Sensor Listening — Touch sensor now...");
@@ -371,7 +441,9 @@ public class UnlockScreen extends Screen {
             this.biometricSignal = BiometricHelper.authenticate((Activity) context, "Unlock @" + username, new BiometricHelper.Callback() {
                 @Override
                 public void onSuccess() {
+                    if (thisSession != biometricSessionId) return;
                     isBiometricActive = false;
+                    biometricSignal = null;
                     if (fpStatusText != null) {
                         fpStatusText.setText("✓ Fingerprint Verified!");
                         fpStatusText.setTextColor(0xFF34D399);
@@ -381,10 +453,15 @@ public class UnlockScreen extends Screen {
 
                 @Override
                 public void onError(String message) {
+                    if (thisSession != biometricSessionId) return;
                     isBiometricActive = false;
+                    biometricSignal = null;
                     if (fpStatusText != null) {
-                        fpStatusText.setText(message != null ? message : "Biometric error");
+                        fpStatusText.setText(message != null ? message : "Biometric scan stopped. Tap to scan again.");
                         fpStatusText.setTextColor(Ui.color(getContext(), R.color.ink_3));
+                    }
+                    if (fpIconView != null) {
+                        fpIconView.setColorFilter(Ui.color(getContext(), R.color.primary_600));
                     }
                     if (errorText != null && message != null && !message.contains("canceled") && !message.contains("Switched")) {
                         errorText.setText(message);
@@ -394,19 +471,24 @@ public class UnlockScreen extends Screen {
 
                 @Override
                 public void onFailed() {
+                    if (thisSession != biometricSessionId) return;
                     isBiometricActive = false;
                     if (fpStatusText != null) {
                         fpStatusText.setText("Fingerprint not recognized. Tap to try again.");
                         fpStatusText.setTextColor(Ui.color(getContext(), R.color.danger));
                     }
+                    if (fpIconView != null) {
+                        fpIconView.setColorFilter(Ui.color(getContext(), R.color.danger));
+                    }
                     if (errorText != null) {
-                        errorText.setText("Fingerprint not recognized. Try again or enter password.");
+                        errorText.setText("Fingerprint not recognized. Tap card to retry or enter password.");
                         errorText.setVisibility(View.VISIBLE);
                     }
                 }
             });
         } catch (Throwable th) {
             isBiometricActive = false;
+            biometricSignal = null;
             if (errorText != null) {
                 errorText.setText("Biometric sensor error: " + th.getMessage());
                 errorText.setVisibility(View.VISIBLE);
@@ -414,7 +496,12 @@ public class UnlockScreen extends Screen {
         }
     }
 
-    private void cancelBiometric() {
+    private synchronized void cancelBiometric() {
+        biometricSessionId++;
+        if (pendingPromptRunnable != null) {
+            removeCallbacks(pendingPromptRunnable);
+            pendingPromptRunnable = null;
+        }
         if (biometricSignal != null && !biometricSignal.isCanceled()) {
             try {
                 biometricSignal.cancel();

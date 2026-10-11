@@ -228,6 +228,7 @@ public class ReportsScreen extends Screen {
             @Override
             public void onClick(View v) {
                 ReportsScreen.this.date = Biz.plusDays(ReportsScreen.this.date, -1);
+                UiState.setDate(context, ReportsScreen.this.date);
                 ReportsScreen.this.refreshContent();
             }
         });
@@ -248,10 +249,25 @@ public class ReportsScreen extends Screen {
         });
         nav.addView(dateLabel, new LinearLayout.LayoutParams(0, -2, 1.0f));
 
+        if (!Biz.isToday(this.date)) {
+            TextView todayBtn = Cards.link(context, "Today ↺", R.color.primary_700, new View.OnClickListener() {
+                @Override
+                public void onClick(View v) {
+                    ReportsScreen.this.date = Biz.today();
+                    UiState.setDate(context, ReportsScreen.this.date);
+                    ReportsScreen.this.refreshContent();
+                }
+            });
+            LinearLayout.LayoutParams tLp = wrap();
+            tLp.rightMargin = Ui.dp(context, 8.0f);
+            nav.addView(todayBtn, tLp);
+        }
+
         TextView next = Cards.link(context, "Next ▶", R.color.primary_700, new View.OnClickListener() {
             @Override
             public void onClick(View v) {
                 ReportsScreen.this.date = Biz.plusDays(ReportsScreen.this.date, 1);
+                UiState.setDate(context, ReportsScreen.this.date);
                 ReportsScreen.this.refreshContent();
             }
         });
@@ -266,6 +282,7 @@ public class ReportsScreen extends Screen {
             @Override
             public void onDateSet(DatePicker view, int year, int monthOfYear, int dayOfMonth) {
                 ReportsScreen.this.date = String.format(Locale.US, "%04d-%02d-%02d", year, monthOfYear + 1, dayOfMonth);
+                UiState.setDate(ReportsScreen.this.getContext(), ReportsScreen.this.date);
                 ReportsScreen.this.refreshContent();
             }
         }, cal.get(Calendar.YEAR), cal.get(Calendar.MONTH), cal.get(Calendar.DAY_OF_MONTH));

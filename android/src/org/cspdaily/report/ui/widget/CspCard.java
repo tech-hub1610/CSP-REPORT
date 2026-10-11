@@ -163,6 +163,9 @@ public class CspCard extends GlassCardView {
                 sb2.append(reasonOrPromise).append("  ·  ");
             }
             sb2.append(cspDay.followupStatus);
+            if (cspDay.pendingDays >= 2) {
+                sb2.append(" (").append(cspDay.pendingDays).append(" days pending)");
+            }
         }
 
         if (sb2.length() == 0) {

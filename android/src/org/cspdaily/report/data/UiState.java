@@ -11,6 +11,7 @@ public final class UiState {
     private static final String K_CSP_QUERY = "csp_query";
     private static final String K_CSP_SORT = "csp_sort_mode";
     private static final String K_DATE = "view_date";
+    private static final String K_DATE_SET_DAY = "view_date_set_day";
     private static final String K_REPORT_COLS = "report_cols";
 
     private UiState() {
@@ -21,23 +22,42 @@ public final class UiState {
     }
 
     public static String date(Context context) {
-        String string = p(context).getString(K_DATE, "");
-        if (string == null || string.length() != 10) {
-            return Biz.today();
+        String today = Biz.today();
+        SharedPreferences sp = p(context);
+        String string = sp.getString(K_DATE, "");
+        String setDay = sp.getString(K_DATE_SET_DAY, "");
+        if (string == null || string.length() != 10 || !today.equals(setDay)) {
+            setDate(context, today);
+            return today;
         }
         return string;
     }
 
     public static void setDate(Context context, String str) {
+        String today = Biz.today();
         SharedPreferences.Editor edit = p(context).edit();
-        if (str == null) {
-            str = Biz.today();
+        if (str == null || str.length() != 10) {
+            str = today;
         }
-        edit.putString(K_DATE, str).apply();
+        edit.putString(K_DATE, str);
+        edit.putString(K_DATE_SET_DAY, today);
+        edit.apply();
     }
 
     public static void resetDate(Context context) {
-        p(context).edit().remove(K_DATE).apply();
+        setDate(context, Biz.today());
+    }
+
+    public static boolean checkDayRollover(Context context) {
+        String today = Biz.today();
+        SharedPreferences sp = p(context);
+        String setDay = sp.getString(K_DATE_SET_DAY, "");
+        String string = sp.getString(K_DATE, "");
+        if (string == null || string.length() != 10 || !today.equals(setDay)) {
+            setDate(context, today);
+            return true;
+        }
+        return false;
     }
 
     public static boolean isViewingToday(Context context) {

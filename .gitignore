@@ -1,0 +1,28 @@
+# Built / generated artifacts
+android/build/
+android/dist/
+android/lib/
+*.apk
+*.aab
+.gradle/
+build/
+!android/build.sh
+
+# IDE
+.idea/
+*.iml
+.vscode/
+.project
+.classpath
+.settings/
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Secrets (never commit)
+*.keystore
+*.jks
+
+# Local overrides
+local.properties

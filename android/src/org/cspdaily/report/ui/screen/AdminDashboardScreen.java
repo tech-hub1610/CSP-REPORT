@@ -324,8 +324,37 @@ public class AdminDashboardScreen extends Screen {
         dateTxt.setTypeface(Typeface.DEFAULT_BOLD);
         Ui.size(dateTxt, 13.5f);
         dateTxt.setTextColor(isSuper ? 0xFF1E1B18 : 0xFFF8FAFC);
-        dateTxt.setText(Biz.fmtDmy(this.date) + (Biz.isToday(this.date) ? " (Today)" : ""));
+        dateTxt.setText(Biz.fmtDmy(this.date) + (Biz.isToday(this.date) ? " (Today)" : "  ▾"));
+        dateTxt.setBackground(Ui.pressable(context, isSuper ? 0x1A000000 : 0x22FFFFFF, 10.0f, true));
+        Ui.pad(dateTxt, 6, 4, 6, 4);
+        dateTxt.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                AdminDashboardScreen.this.pickDate();
+            }
+        });
         dateBar.addView(dateTxt, weight1());
+
+        if (!Biz.isToday(this.date)) {
+            TextView todayBtn = new TextView(context);
+            todayBtn.setText("Today ↺");
+            Ui.size(todayBtn, 11.5f);
+            todayBtn.setTypeface(Typeface.DEFAULT_BOLD);
+            todayBtn.setTextColor(0xFF0F172A);
+            todayBtn.setBackground(Ui.round(context, 0xFFFCD34D, 11.0f, 0xFFFFFFFF, 1.0f));
+            Ui.pad(todayBtn, 8, 3, 8, 3);
+            todayBtn.setOnClickListener(new View.OnClickListener() {
+                @Override
+                public void onClick(View v) {
+                    AdminDashboardScreen.this.date = Biz.today();
+                    UiState.setDate(context, AdminDashboardScreen.this.date);
+                    AdminDashboardScreen.this.refreshContent();
+                }
+            });
+            LinearLayout.LayoutParams tLp = new LinearLayout.LayoutParams(-2, -2);
+            tLp.rightMargin = Ui.dp(context, 6.0f);
+            dateBar.addView(todayBtn, tLp);
+        }
 
         ImageView nextBtn = edgeBtn(context, R.drawable.ic_chevron_right, isSuper, new View.OnClickListener() {
             @Override
